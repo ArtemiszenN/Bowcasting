@@ -3,15 +3,14 @@
 	"id": "bowcasting",
 	"version": "${version}",
 	"name": "bowcasting",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "A client-side Fabric mod that adds animated magical spell effects and dynamic lighting to bows.",
 	"authors": [
-		"Me!"
+		"tseileinn"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/ArtemiszennN/Bowcasting"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/bowcasting/icon.png",
 	"environment": "*",
 	"entrypoints": {
