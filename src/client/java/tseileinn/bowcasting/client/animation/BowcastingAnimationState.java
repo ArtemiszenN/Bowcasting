@@ -1,11 +1,15 @@
 package tseileinn.bowcasting.client.animation;
 
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.ItemStack;
 import tseileinn.bowcasting.Bowcasting;
 import tseileinn.bowcasting.client.BowcastingClient;
-import tseileinn.bowcasting.client.BowcastingDynamicLight;
-import tseileinn.bowcasting.client.BowcastingDynamicLightsInitializer;
 import tseileinn.bowcasting.client.BowcastingLightInterface;
+
+import java.util.HashSet;
+import java.util.Set;
 
 
 public class BowcastingAnimationState {
@@ -14,20 +18,20 @@ public class BowcastingAnimationState {
     public static final float STAGE_1_ROTATION_RATE = 45f;
     public static final float STAGE_2_SCALE_START = 0f;
     public static final float STAGE_2_ROTATION_RATE = -90f;
-    public static final float STAGE_2_TRANSFORM_START = 1f;
-    public static final float STAGE_2_TRANSFORM_END = 0.5f;
+    public float STAGE_2_TRANSFORM_START = 1f;
+    public float STAGE_2_TRANSFORM_END = 0.5f;
     public static final float STAGE_3_ROTATION_RATE = 180f;
-    public static final float STAGE_3_TRANSFORM_START = 5f;
-    public static final float STAGE_3_TRANSFORM_END = 2f;
+    public float STAGE_3_TRANSFORM_START = 5f;
+    public float STAGE_3_TRANSFORM_END = 2f;
     public long charge_start_time = -1;
     public long last_frame_time = -1;
     // I use time instead of charge progress for smoother animations, even if it doesn't match completely
-    public static final double STAGE_2_START_TIME = 0.33f;
-    public static final double STAGE_3_START_TIME = 0.67f;
-    public static final double CHARGE_TIME = 1f;
-    public static final double STAGE_1_DURATION = STAGE_2_START_TIME;
-    public static final double STAGE_2_DURATION = STAGE_3_START_TIME - STAGE_2_START_TIME;
-    public static final double STAGE_3_DURATION = CHARGE_TIME - STAGE_3_START_TIME;
+    public double STAGE_2_START_TIME = 0.33f;
+    public double STAGE_3_START_TIME = 0.67f;
+    public double CHARGE_TIME = 1.0f;
+    public double STAGE_1_DURATION = STAGE_2_START_TIME;
+    public double STAGE_2_DURATION = STAGE_3_START_TIME - STAGE_2_START_TIME;
+    public double STAGE_3_DURATION = CHARGE_TIME - STAGE_3_START_TIME;
     public float stage_1_scale = STAGE_1_SCALE_START;
     public double stage_1_rotation = 0f;
     public double stage_1_transform = 0.1f;
@@ -38,6 +42,8 @@ public class BowcastingAnimationState {
     public double stage_3_rotation = 0f;
     public double stage_3_transform = 0.1f;
     public long last_heartbeat = -1;
+    public boolean was_once_charged = false;
+    private static final Set<BowcastingAnimationState> ACTIVE_STATES = new HashSet<>();
 
     public final BowcastingLightInterface[] lights = {
             BowcastingClient.LIGHT_FACTORY.create(),
@@ -45,7 +51,15 @@ public class BowcastingAnimationState {
             BowcastingClient.LIGHT_FACTORY.create()
     };
 
+    private void setAnimationTimes(double chargeDuration) {
+        CHARGE_TIME = chargeDuration;
+        STAGE_2_START_TIME = chargeDuration * 0.33;
+        STAGE_3_START_TIME = chargeDuration * 0.67;
 
+        STAGE_1_DURATION = STAGE_2_START_TIME;
+        STAGE_2_DURATION = STAGE_3_START_TIME - STAGE_2_START_TIME;
+        STAGE_3_DURATION = CHARGE_TIME - STAGE_3_START_TIME;
+    }
     private static double elapsedSeconds(long start){
         return (System.nanoTime() - start) / 1_000_000_000.0;
     }
@@ -54,21 +68,70 @@ public class BowcastingAnimationState {
         return last_frame_time == -1;
     }
 
+    public static void tickAnimations() {
+        long now = System.nanoTime();
+
+        for (BowcastingAnimationState state : Set.copyOf(ACTIVE_STATES)) {
+            if (now - state.last_heartbeat > 100_000_000L) {
+                state.stopAnim();
+            }
+        }
+    }
+
     public void stopAnim() {
+        ACTIVE_STATES.remove(this);
         charge_start_time = -1;
         last_frame_time = -1;
-        stage_1_rotation = 0f;
+        stage_1_rotation = 0;
         stage_1_scale = STAGE_1_SCALE_START;
+
+        stage_2_rotation = 0;
+        stage_2_scale = STAGE_2_SCALE_START;
+
+        stage_3_rotation = 0;
+        stage_3_scale = 0;
         for (BowcastingLightInterface light : lights){
             light.remove();
         }
     }
 
-    public void startAnim(){
+    public void crossbowChargedCheck(){
+        if(was_once_charged){
+            return;
+        }
+        stopAnim();
+        was_once_charged = true;
+    }
+
+    public void crossbowChargedStartAnim(ItemStack itemStack){
+        if(was_once_charged){
+            return;
+        }
+        startAnim(itemStack);
+
+        charge_start_time =
+                System.nanoTime()
+                        - (long) (CHARGE_TIME * 1_000_000_000.0);
+    }
+
+    public void startAnim(ItemStack itemStack){
+        if (itemStack.getItem() instanceof BowItem){
+            setAnimationTimes(1.0f);
+        }else if(itemStack.getItem() instanceof CrossbowItem){
+            setAnimationTimes(CrossbowItem.getChargeDuration(itemStack) / 20.0f);
+            STAGE_2_TRANSFORM_START = 2.0f;
+            STAGE_2_TRANSFORM_END = 0.3f;
+            STAGE_3_TRANSFORM_END = 1.0f;
+        }else{
+            Bowcasting.LOGGER.warn("Item {} started animation for BowCasting but is neither BowItem or CrossbowItem!", itemStack.getHoverName().getString());
+            return;
+        }
+        ACTIVE_STATES.add(this);
         charge_start_time = System.nanoTime();
         last_frame_time = System.nanoTime();
         heartbeat();
         lights[0].add();
+        was_once_charged = false;
     }
 
     public void endFrame(){

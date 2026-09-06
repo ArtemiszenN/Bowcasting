@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
@@ -32,13 +33,13 @@ import tseileinn.bowcasting.client.animation.BowcastingAnimationStateHolder;
 @Mixin(ItemRenderer.class)
 public class ItemRendererMixin {
     @Unique
+    private static final float CROSSBOW_MULTIPLIER = 0.15f;
+    @Unique
     private static final String STAGE_1_PATH = "textures/spell/stage1.png";
     @Unique
     private static final String STAGE_2_PATH = "textures/spell/stage2.png";
     @Unique
     private static final String STAGE_3_PATH = "textures/spell/stage3.png";
-    @Unique
-    private static LivingEntity bowcasting$currentEntity;
 
     @Unique
     private static void renderGizmo(PoseStack poseStack) {
@@ -152,7 +153,7 @@ public class ItemRendererMixin {
     private static void renderStage1(
             PoseStack poseStack,
             BowcastingAnimationState state,
-            Vec3 entityPos
+            float scaleMultiplier
     ) {
         beginTexture(STAGE_1_PATH);
         state.stage1Simulate();
@@ -164,31 +165,31 @@ public class ItemRendererMixin {
                 0f,
                 -state.stage_1_transform
         );
-        float scale = state.stage_1_scale * Bowcasting.CONFIG.scaleMultiplier1;
+        float scale = state.stage_1_scale * scaleMultiplier;
         poseStack.scale(scale, scale, scale);
         drawWorldLight(poseStack, state, 0);
         endTexture(poseStack);
     }
 
     @Unique
-    private static void renderStage2(PoseStack poseStack, BowcastingAnimationState state) {
+    private static void renderStage2(PoseStack poseStack, BowcastingAnimationState state, float scaleMultiplier) {
         beginTexture(STAGE_2_PATH);
         state.stage2Simulate();
         poseStack.mulPose(Axis.ZP.rotationDegrees((float) state.stage_2_rotation));
         poseStack.translate(0f, 0f, -state.stage_2_transform);
-        float scale = state.stage_2_scale * Bowcasting.CONFIG.scaleMultiplier2;
+        float scale = state.stage_2_scale * scaleMultiplier;
         poseStack.scale(scale, scale, scale);
         drawWorldLight(poseStack, state, 1);
         endTexture(poseStack);
     }
 
     @Unique
-    private static void renderStage3(PoseStack poseStack, BowcastingAnimationState state) {
+    private static void renderStage3(PoseStack poseStack, BowcastingAnimationState state, float scaleMultiplier) {
         beginTexture(STAGE_3_PATH);
         state.stage3Simulate();
         poseStack.mulPose(Axis.ZP.rotationDegrees((float) state.stage_3_rotation));
         poseStack.translate(0f, 0f, -state.stage_3_transform);
-        float scale = state.stage_3_scale * Bowcasting.CONFIG.scaleMultiplier3;
+        float scale = state.stage_3_scale * scaleMultiplier;
         poseStack.scale(scale, scale, scale);
         drawWorldLight(poseStack, state, 2);
         endTexture(poseStack);
@@ -219,7 +220,6 @@ public class ItemRendererMixin {
             int i,
             CallbackInfo ci
     ) {
-        bowcasting$currentEntity = livingEntity;
     }
 
     @Inject(
@@ -241,48 +241,73 @@ public class ItemRendererMixin {
             BakedModel bakedModel,
             CallbackInfo ci
     ) {
-        if (!(itemStack.getItem() instanceof BowItem)) {
-            return;
-        }
-
         if (itemDisplayContext != ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
                 && itemDisplayContext != ItemDisplayContext.FIRST_PERSON_LEFT_HAND
                 && itemDisplayContext != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
                 && itemDisplayContext != ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
             return;
         }
+        if (itemStack.getItem() instanceof BowItem) {
+            BowcastingAnimationState state =
+                    ((BowcastingAnimationStateHolder) (Object) itemStack)
+                            .bowcasting$getAnimationState();
 
-        BowcastingAnimationState state =
-                ((BowcastingAnimationStateHolder) (Object) itemStack)
-                        .bowcasting$getAnimationState();
+            if (state.isDead()) {
+                return;
+            }
 
-        if (state.isDead()) {
-            return;
+            poseStack.pushPose();
+
+            poseStack.translate(-0.5F, 0.5F, 0F);
+            poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
+            poseStack.mulPose(Axis.XP.rotationDegrees(100F));
+            poseStack.pushPose();
+            renderStage1(poseStack, state, Bowcasting.CONFIG.scaleMultiplier1);
+            poseStack.popPose();
+            poseStack.pushPose();
+            renderStage2(poseStack, state, Bowcasting.CONFIG.scaleMultiplier2);
+            poseStack.popPose();
+            poseStack.pushPose();
+            renderStage3(poseStack, state, Bowcasting.CONFIG.scaleMultiplier3);
+            poseStack.popPose();
+
+            poseStack.popPose();
+
+            state.endFrame();
         }
+        if (itemStack.getItem() instanceof CrossbowItem){
+            BowcastingAnimationState state =
+                    ((BowcastingAnimationStateHolder) (Object) itemStack)
+                            .bowcasting$getAnimationState();
+            if (CrossbowItem.isCharged(itemStack)){
+                if (state.isDead()){
+                    state.crossbowChargedStartAnim(itemStack);
+                }
+                state.heartbeat();
+            }
 
-        if (System.nanoTime() - state.last_heartbeat > 100_000_000L) {
-            state.stopAnim();
-            return;
+            if (state.isDead()) {
+                return;
+            }
+
+            poseStack.pushPose();
+
+            poseStack.translate(-0.2F, 0.2F, 0F);
+            poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
+            poseStack.mulPose(Axis.XP.rotationDegrees(100F));
+            poseStack.pushPose();
+            renderStage1(poseStack, state, CROSSBOW_MULTIPLIER * Bowcasting.CONFIG.xbowScaleMultiplier1);
+            poseStack.popPose();
+            poseStack.pushPose();
+            renderStage2(poseStack, state, CROSSBOW_MULTIPLIER * Bowcasting.CONFIG.xbowScaleMultiplier2);
+            poseStack.popPose();
+            poseStack.pushPose();
+            renderStage3(poseStack, state, CROSSBOW_MULTIPLIER * Bowcasting.CONFIG.xbowScaleMultiplier3);
+            poseStack.popPose();
+
+            poseStack.popPose();
+
+            state.endFrame();
         }
-
-        poseStack.pushPose();
-
-        poseStack.translate(-0.5F, 0.5F, 0F);
-        poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
-        poseStack.mulPose(Axis.XP.rotationDegrees(100F));
-        //renderGizmo(poseStack);
-        poseStack.pushPose();
-        renderStage1(poseStack, state, bowcasting$currentEntity.position());
-        poseStack.popPose();
-        poseStack.pushPose();
-        renderStage2(poseStack, state);
-        poseStack.popPose();
-        poseStack.pushPose();
-        renderStage3(poseStack, state);
-        poseStack.popPose();
-
-        poseStack.popPose();
-
-        state.endFrame();
     }
 }

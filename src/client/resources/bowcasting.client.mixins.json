@@ -6,7 +6,8 @@
 		"BowItemMixin",
 		"ItemRendererMixin",
 		"ItemStackMixin",
-		"ItemMixin"
+		"ItemMixin",
+		"CrossbowItemMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

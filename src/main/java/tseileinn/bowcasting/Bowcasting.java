@@ -47,6 +47,11 @@ public class Bowcasting implements ModInitializer {
 		public float scaleMultiplier1 = 1.0f;
 		public float scaleMultiplier2 = 1.0f;
 		public float scaleMultiplier3 = 1.0f;
+
+		public float xbowScaleMultiplier1 = 1.0f;
+		public float xbowScaleMultiplier2 = 1.0f;
+		public float xbowScaleMultiplier3 = 1.0f;
+
 		public float rotationSpeedMultiplier = 1.0f;
 
 		public static BowcastingConfig load() {

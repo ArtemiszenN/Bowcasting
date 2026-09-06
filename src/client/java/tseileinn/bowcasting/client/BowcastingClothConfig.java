@@ -23,7 +23,7 @@ public class BowcastingClothConfig {
         general.addEntry(
                 entryBuilder
                         .startIntSlider(
-                                Component.literal("Stage 1 Scale Multiplier"),
+                                Component.literal("Bow Stage 1 Scale Multiplier"),
                                 (int) (Bowcasting.CONFIG.scaleMultiplier1 * 10),
                                 1,
                                 100
@@ -40,7 +40,7 @@ public class BowcastingClothConfig {
         general.addEntry(
                 entryBuilder
                         .startIntSlider(
-                                Component.literal("Stage 2 Scale Multiplier"),
+                                Component.literal("Bow Stage 2 Scale Multiplier"),
                                 (int) (Bowcasting.CONFIG.scaleMultiplier2 * 10),
                                 1,
                                 100
@@ -57,7 +57,7 @@ public class BowcastingClothConfig {
         general.addEntry(
                 entryBuilder
                         .startIntSlider(
-                                Component.literal("Stage 3 Scale Multiplier"),
+                                Component.literal("Bow Stage 3 Scale Multiplier"),
                                 (int) (Bowcasting.CONFIG.scaleMultiplier3 * 10),
                                 1,
                                 100
@@ -67,6 +67,57 @@ public class BowcastingClothConfig {
                         .setMax(100)
                         .setSaveConsumer(value ->
                                 Bowcasting.CONFIG.scaleMultiplier3 = value / 10.0f
+                        )
+                        .build()
+        );
+
+        general.addEntry(
+                entryBuilder
+                        .startIntSlider(
+                                Component.literal("Crossbow Stage 1 Scale Multiplier"),
+                                (int) (Bowcasting.CONFIG.xbowScaleMultiplier1 * 10),
+                                1,
+                                100
+                        )
+                        .setDefaultValue(10)
+                        .setMin(1)
+                        .setMax(100)
+                        .setSaveConsumer(value ->
+                                Bowcasting.CONFIG.xbowScaleMultiplier1 = value / 10.0f
+                        )
+                        .build()
+        );
+
+        general.addEntry(
+                entryBuilder
+                        .startIntSlider(
+                                Component.literal("Crossbow Stage 2 Scale Multiplier"),
+                                (int) (Bowcasting.CONFIG.xbowScaleMultiplier2 * 10),
+                                1,
+                                100
+                        )
+                        .setDefaultValue(10)
+                        .setMin(1)
+                        .setMax(100)
+                        .setSaveConsumer(value ->
+                                Bowcasting.CONFIG.xbowScaleMultiplier2 = value / 10.0f
+                        )
+                        .build()
+        );
+
+        general.addEntry(
+                entryBuilder
+                        .startIntSlider(
+                                Component.literal("Crossbow Stage 3 Scale Multiplier"),
+                                (int) (Bowcasting.CONFIG.xbowScaleMultiplier3 * 10),
+                                1,
+                                100
+                        )
+                        .setDefaultValue(10)
+                        .setMin(1)
+                        .setMax(100)
+                        .setSaveConsumer(value ->
+                                Bowcasting.CONFIG.xbowScaleMultiplier3 = value / 10.0f
                         )
                         .build()
         );

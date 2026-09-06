@@ -1,14 +1,14 @@
 # Bowcasting
 
-A client-side Minecraft Fabric mod that adds animated magical spell effects to bows.
+A client-side Minecraft Fabric mod that adds animated magical spell effects to bows and crossbows.
 
-Bowcasting adds visual spell animations when charging a bow, including multiple animated stages, custom textures, configurable scaling and rotation speed, and dynamic lighting for active spells.
+Bowcasting adds visual spell animations when using bows and crossbows, including multiple animated stages, custom textures, configurable scaling and rotation speed, and dynamic lighting for active spells.
 
 ## Features
 
 - ✨ Animated multi-stage spell effects
 
-- 🏹 Works with bows in first- and third-person
+- 🏹 Works with bows/crossbows in first- and third-person
 
 - 💡 Dynamic lighting through LambDynamicLights when available
 
