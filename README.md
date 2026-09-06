@@ -44,7 +44,7 @@ LambDynamicLights is an optional integration. When installed, active spells can 
 
 ## Installation
 
-Install the Bowcasting `.jar` into your Minecraft `mods` folder alongside its required dependencies.
+Install the Bowcasting `.jar` into your Minecraft `mods` folder.
 
 For the full dependency and compatibility information, see the project's Modrinth page.
 
