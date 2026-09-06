@@ -28,7 +28,7 @@ Bowcasting provides configuration options through Mod Menu:
 
 - **Rotation Speed Multiplier**: Adjusts the speed of spell rotation.
 
-Mod Menu is optional. Cloth Config is required.
+Mod Menu and Cloth Config are optional.
 
 ## Compatibility
 
