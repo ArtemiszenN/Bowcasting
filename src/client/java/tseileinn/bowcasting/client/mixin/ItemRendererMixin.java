@@ -126,6 +126,27 @@ public class ItemRendererMixin {
         RenderSystem.enableCull();
     }
 
+    @Unique
+    private static void drawWorldLight(PoseStack poseStack, BowcastingAnimationState state, int index) {
+        Camera camera = Minecraft.getInstance()
+                .gameRenderer
+                .getMainCamera();
+        Vec3 cameraPos = camera.getPosition();
+        Quaternionf cameraRotation = camera.rotation();
+        Vector3f lightPos = new Vector3f(0, 0, 0);
+        poseStack.last().pose().transformPosition(lightPos);
+        lightPos.rotate(cameraRotation);
+        Vec3 worldPos = cameraPos.add(
+                lightPos.x(),
+                lightPos.y(),
+                lightPos.z()
+        );
+        state.lights[index].setPosition(
+                worldPos.x,
+                worldPos.y,
+                worldPos.z
+        );
+    }
 
     @Unique
     private static void renderStage1(
@@ -134,47 +155,18 @@ public class ItemRendererMixin {
             Vec3 entityPos
     ) {
         beginTexture(STAGE_1_PATH);
-
         state.stage1Simulate();
-
         poseStack.mulPose(
                 Axis.ZP.rotationDegrees((float) state.stage_1_rotation)
         );
-
         poseStack.translate(
                 0f,
                 0f,
                 -state.stage_1_transform
         );
-
-        float scale = state.stage_1_scale * Bowcasting.CONFIG.scaleMultiplier;
-
+        float scale = state.stage_1_scale * Bowcasting.CONFIG.scaleMultiplier1;
         poseStack.scale(scale, scale, scale);
-
-        Camera camera = Minecraft.getInstance()
-                .gameRenderer
-                .getMainCamera();
-
-        Vec3 cameraPos = camera.getPosition();
-        Quaternionf cameraRotation = camera.rotation();
-
-        Vector3f lightpos = new Vector3f(0, 0, 0);
-        poseStack.last().pose().transformPosition(lightpos);
-
-        lightpos.rotate(cameraRotation);
-
-        Vec3 worldpos = cameraPos.add(
-                lightpos.x(),
-                lightpos.y(),
-                lightpos.z()
-        );
-
-        state.lights[0].setPosition(
-                worldpos.x,
-                worldpos.y,
-                worldpos.z
-        );
-
+        drawWorldLight(poseStack, state, 0);
         endTexture(poseStack);
     }
 
@@ -184,32 +176,9 @@ public class ItemRendererMixin {
         state.stage2Simulate();
         poseStack.mulPose(Axis.ZP.rotationDegrees((float) state.stage_2_rotation));
         poseStack.translate(0f, 0f, -state.stage_2_transform);
-        poseStack.scale(state.stage_2_scale * Bowcasting.CONFIG.scaleMultiplier, state.stage_2_scale* Bowcasting.CONFIG.scaleMultiplier, state.stage_2_scale* Bowcasting.CONFIG.scaleMultiplier);
-
-        Camera camera = Minecraft.getInstance()
-                .gameRenderer
-                .getMainCamera();
-
-        Vec3 cameraPos = camera.getPosition();
-        Quaternionf cameraRotation = camera.rotation();
-
-        Vector3f lightpos = new Vector3f(0, 0, 0);
-        poseStack.last().pose().transformPosition(lightpos);
-
-        lightpos.rotate(cameraRotation);
-
-        Vec3 worldpos = cameraPos.add(
-                lightpos.x(),
-                lightpos.y(),
-                lightpos.z()
-        );
-
-        state.lights[1].setPosition(
-                worldpos.x,
-                worldpos.y,
-                worldpos.z
-        );
-
+        float scale = state.stage_2_scale * Bowcasting.CONFIG.scaleMultiplier2;
+        poseStack.scale(scale, scale, scale);
+        drawWorldLight(poseStack, state, 1);
         endTexture(poseStack);
     }
 
@@ -219,32 +188,9 @@ public class ItemRendererMixin {
         state.stage3Simulate();
         poseStack.mulPose(Axis.ZP.rotationDegrees((float) state.stage_3_rotation));
         poseStack.translate(0f, 0f, -state.stage_3_transform);
-        poseStack.scale(state.stage_3_scale* Bowcasting.CONFIG.scaleMultiplier, state.stage_3_scale *  Bowcasting.CONFIG.scaleMultiplier, state.stage_3_scale* Bowcasting.CONFIG.scaleMultiplier);
-
-        Camera camera = Minecraft.getInstance()
-                .gameRenderer
-                .getMainCamera();
-
-        Vec3 cameraPos = camera.getPosition();
-        Quaternionf cameraRotation = camera.rotation();
-
-        Vector3f lightpos = new Vector3f(0, 0, 0);
-        poseStack.last().pose().transformPosition(lightpos);
-
-        lightpos.rotate(cameraRotation);
-
-        Vec3 worldpos = cameraPos.add(
-                lightpos.x(),
-                lightpos.y(),
-                lightpos.z()
-        );
-
-        state.lights[0].setPosition(
-                worldpos.x,
-                worldpos.y,
-                worldpos.z
-        );
-
+        float scale = state.stage_3_scale * Bowcasting.CONFIG.scaleMultiplier3;
+        poseStack.scale(scale, scale, scale);
+        drawWorldLight(poseStack, state, 2);
         endTexture(poseStack);
     }
 

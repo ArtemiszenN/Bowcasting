@@ -26,15 +26,6 @@ public class Bowcasting implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		CONFIG = BowcastingConfig.load();
-		var initializers = FabricLoader.getInstance().getEntrypoints(
-				"lambdynlights:initializer",
-				DynamicLightsInitializer.class
-		);
-
-		Bowcasting.LOGGER.info(
-				"Found {} Lamb initializers",
-				initializers.size()
-		);
 	}
 
 	public static ResourceLocation id(String path) {
@@ -53,7 +44,9 @@ public class Bowcasting implements ModInitializer {
 
 		private static final Path PATH = CONFIG_DIR.resolve("config.json");
 
-		public float scaleMultiplier = 1.0f;
+		public float scaleMultiplier1 = 1.0f;
+		public float scaleMultiplier2 = 1.0f;
+		public float scaleMultiplier3 = 1.0f;
 		public float rotationSpeedMultiplier = 1.0f;
 
 		public static BowcastingConfig load() {

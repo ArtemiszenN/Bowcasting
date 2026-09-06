@@ -5,7 +5,7 @@ import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import tseileinn.bowcasting.Bowcasting;
 
-public class BowcastingDynamicLight implements DynamicLightBehavior {
+public class BowcastingDynamicLight implements BowcastingLightInterface, DynamicLightBehavior {
 
     private double x;
     private double y;
@@ -68,5 +68,15 @@ public class BowcastingDynamicLight implements DynamicLightBehavior {
         boolean result = changed;
         changed = false;
         return result;
+    }
+
+    @Override
+    public void remove() {
+        BowcastingDynamicLightsInitializer.MANAGER.remove(this);
+    }
+
+    @Override
+    public void add() {
+        BowcastingDynamicLightsInitializer.MANAGER.add(this);
     }
 }

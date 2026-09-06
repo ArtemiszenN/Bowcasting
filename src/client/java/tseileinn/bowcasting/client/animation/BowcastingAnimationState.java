@@ -2,8 +2,10 @@ package tseileinn.bowcasting.client.animation;
 
 import net.minecraft.util.Mth;
 import tseileinn.bowcasting.Bowcasting;
+import tseileinn.bowcasting.client.BowcastingClient;
 import tseileinn.bowcasting.client.BowcastingDynamicLight;
 import tseileinn.bowcasting.client.BowcastingDynamicLightsInitializer;
+import tseileinn.bowcasting.client.BowcastingLightInterface;
 
 
 public class BowcastingAnimationState {
@@ -36,12 +38,11 @@ public class BowcastingAnimationState {
     public double stage_3_rotation = 0f;
     public double stage_3_transform = 0.1f;
     public long last_heartbeat = -1;
-    public boolean[] lights_active = {false, false, false};
 
-    public final BowcastingDynamicLight[] lights = {
-            new BowcastingDynamicLight(),
-            new BowcastingDynamicLight(),
-            new BowcastingDynamicLight()
+    public final BowcastingLightInterface[] lights = {
+            BowcastingClient.LIGHT_FACTORY.create(),
+            BowcastingClient.LIGHT_FACTORY.create(),
+            BowcastingClient.LIGHT_FACTORY.create()
     };
 
 
@@ -58,11 +59,8 @@ public class BowcastingAnimationState {
         last_frame_time = -1;
         stage_1_rotation = 0f;
         stage_1_scale = STAGE_1_SCALE_START;
-        for (boolean light_active : lights_active){
-            light_active = false;
-        }
-        for (BowcastingDynamicLight light : lights){
-            BowcastingDynamicLightsInitializer.MANAGER.remove(light);
+        for (BowcastingLightInterface light : lights){
+            light.remove();
         }
     }
 
@@ -70,8 +68,7 @@ public class BowcastingAnimationState {
         charge_start_time = System.nanoTime();
         last_frame_time = System.nanoTime();
         heartbeat();
-        BowcastingDynamicLightsInitializer.MANAGER.add(lights[0]);
-        lights_active[0] = true;
+        lights[0].add();
     }
 
     public void endFrame(){
@@ -96,8 +93,7 @@ public class BowcastingAnimationState {
         if (elapsedSeconds(charge_start_time) < STAGE_2_START_TIME){
             stage_2_scale = 0f;
         }else if(elapsedSeconds(charge_start_time) < STAGE_3_START_TIME){
-            BowcastingDynamicLightsInitializer.MANAGER.add(lights[1]);
-            lights_active[1] = true;
+            lights[1].add();
             stage_2_rotation = 0f;
             stage_2_scale = (float) Mth.lerp((elapsedSeconds(charge_start_time) - STAGE_2_START_TIME)/STAGE_2_DURATION, STAGE_2_SCALE_START, SCALE_DEFAULT);
             stage_2_transform = (float) Mth.lerp((elapsedSeconds(charge_start_time) - STAGE_2_START_TIME)/STAGE_2_DURATION, STAGE_2_TRANSFORM_START, STAGE_2_TRANSFORM_END);
@@ -112,8 +108,7 @@ public class BowcastingAnimationState {
         if (elapsedSeconds(charge_start_time) < STAGE_3_START_TIME){
             stage_3_scale = 0f;
         }else if(elapsedSeconds(charge_start_time) < CHARGE_TIME){
-            BowcastingDynamicLightsInitializer.MANAGER.add(lights[2]);
-            lights_active[2] = true;
+            lights[2].add();
             stage_3_rotation = 0f;
             stage_3_scale = SCALE_DEFAULT;
             stage_3_transform = (float) Mth.lerp((elapsedSeconds(charge_start_time) - STAGE_3_START_TIME)/STAGE_3_DURATION, STAGE_3_TRANSFORM_START, STAGE_3_TRANSFORM_END);

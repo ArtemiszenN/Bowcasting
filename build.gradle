@@ -46,7 +46,8 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	// Cloth config
-	modImplementation "me.shedaniel.cloth:cloth-config-fabric:11.1.118"
+	modCompileOnly "me.shedaniel.cloth:cloth-config-fabric:11.1.118"
+	modLocalRuntime "me.shedaniel.cloth:cloth-config-fabric:11.1.118"
 
 	//Mod Menu
 	modCompileOnly "com.terraformersmc:modmenu:7.2.2"

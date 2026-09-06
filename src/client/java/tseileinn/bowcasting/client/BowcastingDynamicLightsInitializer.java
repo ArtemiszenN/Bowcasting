@@ -13,6 +13,7 @@ public class BowcastingDynamicLightsInitializer
     @Override
     public void onInitializeDynamicLights(DynamicLightsContext context) {
         MANAGER = context.dynamicLightBehaviorManager();
+        BowcastingClient.LIGHT_FACTORY = BowcastingDynamicLight::new;
     }
 
     @Override
