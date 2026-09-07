@@ -247,7 +247,7 @@ public class ItemRendererMixin {
                 && itemDisplayContext != ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
             return;
         }
-        if (itemStack.getItem() instanceof BowItem) {
+        if (itemStack.getItem() instanceof BowItem && Bowcasting.CONFIG.renderBowRune) {
             BowcastingAnimationState state =
                     ((BowcastingAnimationStateHolder) (Object) itemStack)
                             .bowcasting$getAnimationState();
@@ -275,7 +275,7 @@ public class ItemRendererMixin {
 
             state.endFrame();
         }
-        if (itemStack.getItem() instanceof CrossbowItem){
+        if (itemStack.getItem() instanceof CrossbowItem && Bowcasting.CONFIG.renderCrossbowRune){
             BowcastingAnimationState state =
                     ((BowcastingAnimationStateHolder) (Object) itemStack)
                             .bowcasting$getAnimationState();

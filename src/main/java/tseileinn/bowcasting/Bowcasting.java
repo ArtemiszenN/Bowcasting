@@ -5,7 +5,11 @@ import com.google.gson.GsonBuilder;
 import dev.lambdaurora.lambdynlights.api.DynamicLightsInitializer;
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.core.Registry;
+import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 
 import org.slf4j.Logger;
@@ -27,6 +31,13 @@ public class Bowcasting implements ModInitializer {
 	public void onInitialize() {
 		CONFIG = BowcastingConfig.load();
 	}
+
+	public static final SimpleParticleType RUNE_PARTICLE =
+			Registry.register(
+					BuiltInRegistries.PARTICLE_TYPE,
+					id("rune_particle"),
+					FabricParticleTypes.simple(true)
+			);
 
 	public static ResourceLocation id(String path) {
 		return new ResourceLocation(MOD_ID, path);
@@ -53,6 +64,10 @@ public class Bowcasting implements ModInitializer {
 		public float xbowScaleMultiplier3 = 1.0f;
 
 		public float rotationSpeedMultiplier = 1.0f;
+
+		public boolean renderBowRune = true;
+		public boolean renderCrossbowRune = true;
+		public boolean renderArrowRune = true;
 
 		public static BowcastingConfig load() {
 			try {

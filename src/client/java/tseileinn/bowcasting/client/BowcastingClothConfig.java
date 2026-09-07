@@ -139,6 +139,45 @@ public class BowcastingClothConfig {
                         .build()
         );
 
+        general.addEntry(
+                entryBuilder
+                        .startBooleanToggle(
+                                Component.literal("Enable Bow Effects"),
+                                Bowcasting.CONFIG.renderBowRune
+                        )
+                        .setDefaultValue(true)
+                        .setSaveConsumer(value ->
+                                Bowcasting.CONFIG.renderBowRune = value
+                        )
+                        .build()
+        );
+
+        general.addEntry(
+                entryBuilder
+                        .startBooleanToggle(
+                                Component.literal("Enable Crossbow Effects"),
+                                Bowcasting.CONFIG.renderCrossbowRune
+                        )
+                        .setDefaultValue(true)
+                        .setSaveConsumer(value ->
+                                Bowcasting.CONFIG.renderCrossbowRune = value
+                        )
+                        .build()
+        );
+
+        general.addEntry(
+                entryBuilder
+                        .startBooleanToggle(
+                                Component.literal("Enable Arrow effects"),
+                                Bowcasting.CONFIG.renderArrowRune
+                        )
+                        .setDefaultValue(true)
+                        .setSaveConsumer(value ->
+                                Bowcasting.CONFIG.renderArrowRune = value
+                        )
+                        .build()
+        );
+
         builder.setSavingRunnable(() -> Bowcasting.CONFIG.save());
 
         return builder.build();
