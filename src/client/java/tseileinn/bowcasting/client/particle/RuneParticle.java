@@ -3,7 +3,9 @@ package tseileinn.bowcasting.client.particle;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
+import tseileinn.bowcasting.Bowcasting;
 
 public class RuneParticle extends TextureSheetParticle {
 
@@ -25,7 +27,16 @@ public class RuneParticle extends TextureSheetParticle {
         this.quadSize = 0.2f;
         this.alpha = 1.0f;
 
-        this.pickSprite(sprites);
+        int version = Mth.clamp(
+                Bowcasting.CONFIG.runeParticleVersion,
+                1,
+                Bowcasting.BowcastingConfig.RUNE_PARTICLE_VERSIONS
+        );
+
+        this.setSprite(sprites.get(
+                version - 1,
+                Bowcasting.BowcastingConfig.RUNE_PARTICLE_VERSIONS - 1
+        ));
 
         this.roll = this.random.nextFloat() * ((float)Math.PI * 2f);
         this.oRoll = this.roll;

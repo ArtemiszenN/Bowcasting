@@ -69,6 +69,10 @@ public class Bowcasting implements ModInitializer {
 		public boolean renderCrossbowRune = true;
 		public boolean renderArrowRune = true;
 
+		public int runeParticleVersion = 1;
+
+		public static final int RUNE_PARTICLE_VERSIONS = 3;
+
 		public static BowcastingConfig load() {
 			try {
 				if (Files.exists(PATH)) {

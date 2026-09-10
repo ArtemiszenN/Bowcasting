@@ -34,6 +34,8 @@ Bowcasting provides configuration options through Mod Menu, including:
 
 * **Projectile Effects**: Enables or disables rune effects on fired projectiles.
 
+* **Projectile Particle Style**: Selects the visual style used for rune particles.
+
 * **Scale Multiplier**: Adjusts the size of spell effects.
 
 * **Rotation Speed Multiplier**: Adjusts the speed of spell rotation.

@@ -1,5 +1,7 @@
 {
   "textures": [
-    "bowcasting:rune_particle"
+    "bowcasting:rune_particle",
+    "bowcasting:rune_particle2",
+    "bowcasting:rune_particle3"
   ]
 }

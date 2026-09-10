@@ -168,7 +168,7 @@ public class BowcastingClothConfig {
         general.addEntry(
                 entryBuilder
                         .startBooleanToggle(
-                                Component.literal("Enable Arrow effects"),
+                                Component.literal("Enable Projectile Effects"),
                                 Bowcasting.CONFIG.renderArrowRune
                         )
                         .setDefaultValue(true)
@@ -177,6 +177,24 @@ public class BowcastingClothConfig {
                         )
                         .build()
         );
+
+        general.addEntry(
+                entryBuilder
+                        .startIntSlider(
+                                Component.literal("Projectile Texture Version"),
+                                Bowcasting.CONFIG.runeParticleVersion,
+                                1,
+                                Bowcasting.BowcastingConfig.RUNE_PARTICLE_VERSIONS
+                        )
+                        .setDefaultValue(1)
+                        .setMin(1)
+                        .setMax(Bowcasting.BowcastingConfig.RUNE_PARTICLE_VERSIONS)
+                        .setSaveConsumer(value ->
+                                Bowcasting.CONFIG.runeParticleVersion = value
+                        )
+                        .build()
+        );
+
 
         builder.setSavingRunnable(() -> Bowcasting.CONFIG.save());
 
