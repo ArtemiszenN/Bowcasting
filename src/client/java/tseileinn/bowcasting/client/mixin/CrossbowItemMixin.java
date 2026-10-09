@@ -44,7 +44,7 @@ public class CrossbowItemMixin {
             return;
         }
 
-        state.stopAnim();
+        //state.stopAnim();
     }
 
     @Inject(
@@ -72,7 +72,7 @@ public class CrossbowItemMixin {
             return;
         }
 
-        state.stopAnim();
+        //state.stopAnim();
     }
 
     @Inject(

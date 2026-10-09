@@ -43,7 +43,6 @@ public class BowcastingAnimationState {
     public double stage_3_rotation = 0f;
     public double stage_3_transform = 0.1f;
     public long last_heartbeat = -1;
-    public boolean was_once_charged = false;
     private static final Set<BowcastingAnimationState> ACTIVE_STATES = new HashSet<>();
 
     public final BowcastingLightInterface[] lights = {
@@ -96,18 +95,13 @@ public class BowcastingAnimationState {
         }
     }
 
-    public void crossbowChargedCheck(){
-        if(was_once_charged){
-            return;
-        }
-        stopAnim();
-        was_once_charged = true;
+    public void crossbowChargedCheck() {
+        // Jump directly to the fully charged animation state
+        charge_start_time = System.nanoTime()
+                - (long) (CHARGE_TIME * 1_000_000_000.0);
     }
 
     public void crossbowChargedStartAnim(ItemStack itemStack, LivingEntity entity){
-        if(was_once_charged){
-            return;
-        }
         startAnim(itemStack, entity);
 
         charge_start_time =
@@ -136,7 +130,6 @@ public class BowcastingAnimationState {
         last_frame_time = System.nanoTime();
         heartbeat();
         lights[0].add();
-        was_once_charged = false;
     }
 
     public void endFrame(){

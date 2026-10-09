@@ -8,7 +8,10 @@
 		"ItemStackMixin",
 		"ItemMixin",
 		"CrossbowItemMixin",
-		"AbstractArrowMixin"
+		"AbstractArrowMixin",
+		"ItemStackLayerMixin",
+		"ItemModelResolverMixin",
+		"ItemInHandLayerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

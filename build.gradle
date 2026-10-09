@@ -44,18 +44,16 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	// Cloth Config
-	modCompileOnly "me.shedaniel.cloth:cloth-config-fabric:17.0.144"
-	modLocalRuntime "me.shedaniel.cloth:cloth-config-fabric:17.0.144"
+	modCompileOnly "me.shedaniel.cloth:cloth-config-fabric:19.0.147"
+	modLocalRuntime "me.shedaniel.cloth:cloth-config-fabric:19.0.147"
 
 	// Mod Menu
-	modCompileOnly "com.terraformersmc:modmenu:13.0.4"
-	modLocalRuntime "com.terraformersmc:modmenu:13.0.4"
+	modCompileOnly "com.terraformersmc:modmenu:15.0.1"
+	modLocalRuntime "com.terraformersmc:modmenu:15.0.1"
 
 	// LambDynamicLights
-	modCompileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:4.1.0+1.21.4")
-	modLocalRuntime("dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:4.1.0+1.21.4") {
-		exclude group: "net.fabricmc.fabric-api"
-	}
+	modCompileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:4.8.7+1.21.8")
+	modLocalRuntime("dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:4.8.7+1.21.8") {exclude group: "net.fabricmc.fabric-api"}
 }
 
 processResources {
@@ -68,7 +66,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 17
+	it.options.release = 21
 }
 
 java {
@@ -77,8 +75,8 @@ java {
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {
