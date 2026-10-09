@@ -16,10 +16,4 @@ public class BowcastingDynamicLightsInitializer
         MANAGER = context.dynamicLightBehaviorManager();
         BowcastingClient.LIGHT_FACTORY = BowcastingDynamicLight::new;
     }
-
-    @Override
-    @SuppressWarnings("removal")
-    public void onInitializeDynamicLights(ItemLightSourceManager itemLightSourceManager) {
-
-    }
 }

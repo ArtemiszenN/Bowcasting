@@ -37,27 +37,25 @@ loom {
 }
 
 dependencies {
-	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings loom.officialMojangMappings()
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	// Cloth Config
-	modCompileOnly "me.shedaniel.cloth:cloth-config-fabric:16.0.141"
-//	modLocalRuntime "me.shedaniel.cloth:cloth-config-fabric:16.0.141"
+	modCompileOnly "me.shedaniel.cloth:cloth-config-fabric:17.0.144"
+	modLocalRuntime "me.shedaniel.cloth:cloth-config-fabric:17.0.144"
 
 	// Mod Menu
-	modCompileOnly "com.terraformersmc:modmenu:12.0.0"
-//	modLocalRuntime "com.terraformersmc:modmenu:12.0.0"
+	modCompileOnly "com.terraformersmc:modmenu:13.0.4"
+	modLocalRuntime "com.terraformersmc:modmenu:13.0.4"
 
 	// LambDynamicLights
-	modCompileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:4.1.0+1.21.3")
-//	modLocalRuntime("dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:4.1.0+1.21.3") {
-//		exclude group: "net.fabricmc.fabric-api"
-//	}
+	modCompileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:4.1.0+1.21.4")
+	modLocalRuntime("dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:4.1.0+1.21.4") {
+		exclude group: "net.fabricmc.fabric-api"
+	}
 }
 
 processResources {
