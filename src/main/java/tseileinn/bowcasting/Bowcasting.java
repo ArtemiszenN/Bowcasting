@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 
 public class Bowcasting implements ModInitializer {
 	public static final String MOD_ID = "bowcasting";
@@ -40,7 +41,7 @@ public class Bowcasting implements ModInitializer {
 			);
 
 	public static ResourceLocation id(String path) {
-		return new ResourceLocation(MOD_ID, path);
+		return Objects.requireNonNull(ResourceLocation.tryBuild(MOD_ID, path));
 	}
 
 	public static final Path CONFIG_DIR = FabricLoader.getInstance().getConfigDir()
