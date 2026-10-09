@@ -2,7 +2,7 @@ package tseileinn.bowcasting.client.mixin;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CrossbowItem;
@@ -29,11 +29,7 @@ public class CrossbowItemMixin {
             at = @At("TAIL")
     )
     private void bowcasting$releaseUsing(
-            ItemStack itemStack,
-            Level level,
-            LivingEntity livingEntity,
-            int remainingUseTicks,
-            CallbackInfo ci
+            ItemStack itemStack, Level level, LivingEntity livingEntity, int i, CallbackInfoReturnable<Boolean> cir
     ) {
         if (!level.isClientSide()) {
             return;
@@ -59,7 +55,7 @@ public class CrossbowItemMixin {
             Level level,
             Player player,
             InteractionHand interactionHand,
-            CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir
+            CallbackInfoReturnable<InteractionResult> cir
     ) {
         if (!level.isClientSide()) {
             return;

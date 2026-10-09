@@ -6,6 +6,7 @@ import com.mojang.math.Axis;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.CoreShaders;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -83,12 +84,14 @@ public class ItemRendererMixin {
 //    }
 
     @Unique
-    private static void beginTexture(String path){
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+    private static void beginTexture(String path) {
+        RenderSystem.setShader(CoreShaders.POSITION_TEX);
+
         RenderSystem.setShaderTexture(
                 0,
                 Bowcasting.id(path)
         );
+
         RenderSystem.enableDepthTest();
         RenderSystem.depthFunc(GL11.GL_LEQUAL);
         RenderSystem.enableBlend();
@@ -220,11 +223,7 @@ public class ItemRendererMixin {
 
     @Inject(
             method = "render",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/block/model/ItemTransform;apply(ZLcom/mojang/blaze3d/vertex/PoseStack;)V",
-                    shift = At.Shift.AFTER
-            )
+            at = @At("HEAD")
     )
     private void bowcasting$renderSpell(
             ItemStack itemStack,
@@ -253,7 +252,9 @@ public class ItemRendererMixin {
             }
 
             poseStack.pushPose();
-
+            bakedModel.getTransforms()
+                    .getTransform(itemDisplayContext)
+                    .apply(bl, poseStack);
             poseStack.translate(-0.5F, 0.5F, 0F);
             poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
             poseStack.mulPose(Axis.XP.rotationDegrees(100F));
@@ -287,7 +288,9 @@ public class ItemRendererMixin {
             }
 
             poseStack.pushPose();
-
+            bakedModel.getTransforms()
+                    .getTransform(itemDisplayContext)
+                    .apply(bl, poseStack);
             poseStack.translate(-0.2F, 0.2F, 0F);
             poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
             poseStack.mulPose(Axis.XP.rotationDegrees(100F));

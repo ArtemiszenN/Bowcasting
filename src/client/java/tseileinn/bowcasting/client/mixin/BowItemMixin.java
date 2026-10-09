@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import tseileinn.bowcasting.client.animation.BowcastingAnimationState;
 import tseileinn.bowcasting.client.animation.BowcastingAnimationStateHolder;
 
@@ -21,11 +22,7 @@ public class BowItemMixin {
             at = @At("HEAD")
     )
     private void bowcasting$releaseUsing(
-            ItemStack itemStack,
-            Level level,
-            LivingEntity livingEntity,
-            int remainingUseTicks,
-            CallbackInfo ci
+            ItemStack itemStack, Level level, LivingEntity livingEntity, int i, CallbackInfoReturnable<Boolean> cir
     ) {
         if (!level.isClientSide()) {
             return;
