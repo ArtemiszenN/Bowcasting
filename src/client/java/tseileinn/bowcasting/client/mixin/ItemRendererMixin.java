@@ -41,46 +41,46 @@ public class ItemRendererMixin {
     @Unique
     private static final String STAGE_3_PATH = "textures/spell/stage3.png";
 
-    @Unique
-    private static void renderGizmo(PoseStack poseStack) {
-        RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
-
-        PoseStack.Pose pose = poseStack.last();
-
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
-
-        float length = 0.5f;
-
-        // X = red
-        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-                .color(255, 0, 0, 255)
-                .endVertex();
-
-        buffer.vertex(pose.pose(), length, 0.0f, 0.0f)
-                .color(255, 0, 0, 255)
-                .endVertex();
-
-        // Y = green
-        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-                .color(0, 255, 0, 255)
-                .endVertex();
-
-        buffer.vertex(pose.pose(), 0.0f, length, 0.0f)
-                .color(0, 255, 0, 255)
-                .endVertex();
-
-        // Z = blue
-        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-                .color(0, 0, 255, 255)
-                .endVertex();
-
-        buffer.vertex(pose.pose(), 0.0f, 0.0f, length)
-                .color(0, 0, 255, 255)
-                .endVertex();
-
-        Tesselator.getInstance().end();
-    }
+//    @Unique
+//    private static void renderGizmo(PoseStack poseStack) {
+//        RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
+//
+//        PoseStack.Pose pose = poseStack.last();
+//
+//        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+//        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+//
+//        float length = 0.5f;
+//
+//        // X = red
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
+//                .color(255, 0, 0, 255)
+//                .endVertex();
+//
+//        buffer.vertex(pose.pose(), length, 0.0f, 0.0f)
+//                .color(255, 0, 0, 255)
+//                .endVertex();
+//
+//        // Y = green
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
+//                .color(0, 255, 0, 255)
+//                .endVertex();
+//
+//        buffer.vertex(pose.pose(), 0.0f, length, 0.0f)
+//                .color(0, 255, 0, 255)
+//                .endVertex();
+//
+//        // Z = blue
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
+//                .color(0, 0, 255, 255)
+//                .endVertex();
+//
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, length)
+//                .color(0, 0, 255, 255)
+//                .endVertex();
+//
+//        Tesselator.getInstance().end();
+//    }
 
     @Unique
     private static void beginTexture(String path){
@@ -97,31 +97,27 @@ public class ItemRendererMixin {
     }
 
     @Unique
-    private static void endTexture(PoseStack poseStack){
+    private static void endTexture(PoseStack poseStack) {
         PoseStack.Pose pose = poseStack.last();
 
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(
+        BufferBuilder buffer = Tesselator.getInstance().begin(
                 VertexFormat.Mode.QUADS,
                 DefaultVertexFormat.POSITION_TEX
         );
-        buffer.vertex(pose.pose(), -0.5f, -0.5f, 0.0f)
-                .uv(0.0f, 1.0f)
-                .endVertex();
 
-        buffer.vertex(pose.pose(), 0.5f, -0.5f, 0.0f)
-                .uv(1.0f, 1.0f)
-                .endVertex();
+        buffer.addVertex(pose.pose(), -0.5f, -0.5f, 0.0f)
+                .setUv(0.0f, 1.0f);
 
-        buffer.vertex(pose.pose(), 0.5f, 0.5f, 0.0f)
-                .uv(1.0f, 0.0f)
-                .endVertex();
+        buffer.addVertex(pose.pose(), 0.5f, -0.5f, 0.0f)
+                .setUv(1.0f, 1.0f);
 
-        buffer.vertex(pose.pose(), -0.5f, 0.5f, 0.0f)
-                .uv(0.0f, 0.0f)
-                .endVertex();
+        buffer.addVertex(pose.pose(), 0.5f, 0.5f, 0.0f)
+                .setUv(1.0f, 0.0f);
 
-        Tesselator.getInstance().end();
+        buffer.addVertex(pose.pose(), -0.5f, 0.5f, 0.0f)
+                .setUv(0.0f, 0.0f);
+
+        BufferUploader.drawWithShader(buffer.buildOrThrow());
 
         RenderSystem.disableBlend();
         RenderSystem.enableCull();
@@ -281,7 +277,7 @@ public class ItemRendererMixin {
                             .bowcasting$getAnimationState();
             if (CrossbowItem.isCharged(itemStack)){
                 if (state.isDead()){
-                    state.crossbowChargedStartAnim(itemStack);
+                    state.crossbowChargedStartAnim(itemStack, null);
                 }
                 state.heartbeat();
             }

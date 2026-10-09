@@ -42,7 +42,7 @@ public class ItemMixin {
 
         state.heartbeat();
         if(state.isDead()) {
-            state.startAnim(itemStack);
+            state.startAnim(itemStack, livingEntity);
         }
     }
 }

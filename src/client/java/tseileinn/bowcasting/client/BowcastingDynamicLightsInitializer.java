@@ -3,6 +3,7 @@ package tseileinn.bowcasting.client;
 import dev.lambdaurora.lambdynlights.api.DynamicLightsContext;
 import dev.lambdaurora.lambdynlights.api.DynamicLightsInitializer;
 import dev.lambdaurora.lambdynlights.api.behavior.DynamicLightBehaviorManager;
+import dev.lambdaurora.lambdynlights.api.item.ItemLightSourceManager;
 
 public class BowcastingDynamicLightsInitializer
         implements DynamicLightsInitializer {
@@ -18,6 +19,7 @@ public class BowcastingDynamicLightsInitializer
 
     @Override
     @SuppressWarnings("removal")
-    public void onInitializeDynamicLights() {
+    public void onInitializeDynamicLights(ItemLightSourceManager itemLightSourceManager) {
+
     }
 }

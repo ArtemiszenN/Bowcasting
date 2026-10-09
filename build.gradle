@@ -45,22 +45,17 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-	// Cloth config
-	modCompileOnly "me.shedaniel.cloth:cloth-config-fabric:11.1.118"
-	modLocalRuntime "me.shedaniel.cloth:cloth-config-fabric:11.1.118"
+	// Cloth Config
+	modCompileOnly "me.shedaniel.cloth:cloth-config-fabric:15.0.140"
+	modLocalRuntime "me.shedaniel.cloth:cloth-config-fabric:15.0.140"
 
-	//Mod Menu
-	modCompileOnly "com.terraformersmc:modmenu:7.2.2"
-	modLocalRuntime "com.terraformersmc:modmenu:7.2.2"
+	// Mod Menu
+	modCompileOnly "com.terraformersmc:modmenu:11.0.5"
+	modLocalRuntime "com.terraformersmc:modmenu:11.0.5"
 
-	// The API of LambDynamicLights.
-	// This is only required for compilation if you're using the Java API.
-	modCompileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:4.1.0+1.20.1")
-
-	// For runtime of LambDynamicLights.
-	// Include only if you need to test in your dev env compatibility with LambDynamicLights.
-	// Replace with modRuntimeOnly if you want the dependency to be transitive.
-	modLocalRuntime("dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:4.1.0+1.20.1")
+	// LambDynamicLights
+	modCompileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:4.1.0+1.21.1")
+	modLocalRuntime("dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:4.1.0+1.21.1")
 }
 
 processResources {

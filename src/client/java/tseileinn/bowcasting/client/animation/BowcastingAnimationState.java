@@ -1,6 +1,7 @@
 package tseileinn.bowcasting.client.animation;
 
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
@@ -103,22 +104,26 @@ public class BowcastingAnimationState {
         was_once_charged = true;
     }
 
-    public void crossbowChargedStartAnim(ItemStack itemStack){
+    public void crossbowChargedStartAnim(ItemStack itemStack, LivingEntity entity){
         if(was_once_charged){
             return;
         }
-        startAnim(itemStack);
+        startAnim(itemStack, entity);
 
         charge_start_time =
                 System.nanoTime()
                         - (long) (CHARGE_TIME * 1_000_000_000.0);
     }
 
-    public void startAnim(ItemStack itemStack){
+    public void startAnim(ItemStack itemStack, LivingEntity entity){
         if (itemStack.getItem() instanceof BowItem){
             setAnimationTimes(1.0f);
         }else if(itemStack.getItem() instanceof CrossbowItem){
-            setAnimationTimes(CrossbowItem.getChargeDuration(itemStack) / 20.0f);
+            if (entity != null) {
+                setAnimationTimes(CrossbowItem.getChargeDuration(itemStack, entity) / 20.0f);
+            }else{
+                setAnimationTimes(1.25f);
+            }
             STAGE_2_TRANSFORM_START = 2.0f;
             STAGE_2_TRANSFORM_END = 0.3f;
             STAGE_3_TRANSFORM_END = 1.0f;
