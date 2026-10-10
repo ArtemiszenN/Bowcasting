@@ -6,12 +6,13 @@ import com.mojang.math.Axis;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.CoreShaders;
 import net.minecraft.client.renderer.block.model.ItemTransform;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
@@ -34,6 +35,9 @@ import tseileinn.bowcasting.Bowcasting;
 import tseileinn.bowcasting.client.BowcastingSpellRenderer;
 import tseileinn.bowcasting.client.animation.BowcastingAnimationState;
 import tseileinn.bowcasting.client.animation.BowcastingAnimationStateHolder;
+
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 @Mixin(ItemRenderer.class)
 public class ItemRendererMixin implements BowcastingSpellRenderer {
@@ -92,87 +96,6 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
                 bowcasting$entityScopes.get().peek()
         );
     }
-
-//    @Unique
-//    private static void renderGizmo(PoseStack poseStack) {
-//        RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
-//
-//        PoseStack.Pose pose = poseStack.last();
-//
-//        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-//        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
-//
-//        float length = 0.5f;
-//
-//        // X = red
-//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-//                .color(255, 0, 0, 255)
-//                .endVertex();
-//
-//        buffer.vertex(pose.pose(), length, 0.0f, 0.0f)
-//                .color(255, 0, 0, 255)
-//                .endVertex();
-//
-//        // Y = green
-//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-//                .color(0, 255, 0, 255)
-//                .endVertex();
-//
-//        buffer.vertex(pose.pose(), 0.0f, length, 0.0f)
-//                .color(0, 255, 0, 255)
-//                .endVertex();
-//
-//        // Z = blue
-//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-//                .color(0, 0, 255, 255)
-//                .endVertex();
-//
-//        buffer.vertex(pose.pose(), 0.0f, 0.0f, length)
-//                .color(0, 0, 255, 255)
-//                .endVertex();
-//
-//        Tesselator.getInstance().end();
-//    }
-//    @Unique
-//    private static void renderGizmo(PoseStack poseStack) {
-//        RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
-//
-//        PoseStack.Pose pose = poseStack.last();
-//
-//        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-//        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
-//
-//        float length = 0.5f;
-//
-//        // X = red
-//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-//                .color(255, 0, 0, 255)
-//                .endVertex();
-//
-//        buffer.vertex(pose.pose(), length, 0.0f, 0.0f)
-//                .color(255, 0, 0, 255)
-//                .endVertex();
-//
-//        // Y = green
-//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-//                .color(0, 255, 0, 255)
-//                .endVertex();
-//
-//        buffer.vertex(pose.pose(), 0.0f, length, 0.0f)
-//                .color(0, 255, 0, 255)
-//                .endVertex();
-//
-//        // Z = blue
-//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-//                .color(0, 0, 255, 255)
-//                .endVertex();
-//
-//        buffer.vertex(pose.pose(), 0.0f, 0.0f, length)
-//                .color(0, 0, 255, 255)
-//                .endVertex();
-//
-//        Tesselator.getInstance().end();
-//    }
 
     @Unique
     private static void beginTexture(String path) {
@@ -324,38 +247,6 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
                 : rendered;
     }
 
-    @Inject(
-            method = "renderStatic(Lnet/minecraft/world/entity/LivingEntity;" +
-                    "Lnet/minecraft/world/item/ItemStack;" +
-                    "Lnet/minecraft/world/item/ItemDisplayContext;" +
-                    "Z" +
-                    "Lcom/mojang/blaze3d/vertex/PoseStack;" +
-                    "Lnet/minecraft/client/renderer/MultiBufferSource;" +
-                    "Lnet/minecraft/world/level/Level;" +
-                    "III)V",
-            at = @At("TAIL")
-    )
-    private void bowcasting$renderSpell(
-            LivingEntity livingEntity,
-            ItemStack itemStack,
-            ItemDisplayContext itemDisplayContext,
-            boolean bl,
-            PoseStack poseStack,
-            MultiBufferSource multiBufferSource,
-            Level level,
-            int light,
-            int overlay,
-            int seed,
-            CallbackInfo ci
-    ){
-        bowcasting$drawSpell(
-                itemStack,
-                itemDisplayContext,
-                poseStack,
-                scratchItemStackRenderState.transform(),
-                bl
-        );
-    };
 
 
     @Override
@@ -366,28 +257,51 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
             ItemTransform transform,
             boolean leftHand
     ) {
-        boolean firstPerson =
-                context == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
-                        || context == ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
+        boolean handContext = switch (context) {
+            case FIRST_PERSON_RIGHT_HAND,
+                 FIRST_PERSON_LEFT_HAND,
+                 THIRD_PERSON_RIGHT_HAND,
+                 THIRD_PERSON_LEFT_HAND -> true;
+            default -> false;
+        };
 
-        boolean thirdPerson =
-                context == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
-                        || context == ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
-
-        if (!firstPerson && !thirdPerson) {
+        if (!handContext) {
             return;
         }
 
         boolean bow = itemStack.getItem() instanceof BowItem;
         boolean crossbow = itemStack.getItem() instanceof CrossbowItem;
 
-        if (!(bow && Bowcasting.CONFIG.renderBowRune)
-                && !(crossbow && Bowcasting.CONFIG.renderCrossbowRune)) {
+        if (!((bow && Bowcasting.CONFIG.renderBowRune)
+                || (crossbow && Bowcasting.CONFIG.renderCrossbowRune))) {
             return;
         }
 
-        BowcastingAnimationState state =
+        ItemStack owner = bowcasting$getStateOwner(itemStack, context);
+
+
+        BowcastingAnimationState renderedState =
                 ((BowcastingAnimationStateHolder) (Object) itemStack)
+                        .bowcasting$getAnimationState();
+
+        BowcastingAnimationState ownerState =
+                ((BowcastingAnimationStateHolder) (Object) owner)
+                        .bowcasting$getAnimationState();
+
+        Bowcasting.LOGGER.warn(
+                "[BC] ctx={} local={} rendered={} owner={} " +
+                        "same={} renderedDead={} ownerDead={}",
+                context,
+                bowcasting$isLocalPlayerRender(),
+                System.identityHashCode(itemStack),
+                System.identityHashCode(owner),
+                itemStack == owner,
+                renderedState.isDead(),
+                ownerState.isDead()
+        );
+
+        BowcastingAnimationState state =
+                ((BowcastingAnimationStateHolder) (Object) owner)
                         .bowcasting$getAnimationState();
 
         if (crossbow && CrossbowItem.isCharged(itemStack)) {
@@ -401,13 +315,7 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
             return;
         }
 
-        // Position and rotation tuning
         float offset = bow ? 0.5F : 0.2F;
-
-        float rotationZ = 45F;
-        float rotationX = 100F;
-
-        // Per-weapon stage scaling
         float multiplier = bow ? 1F : CROSSBOW_MULTIPLIER;
 
         float scale1 = multiplier * (bow
@@ -427,8 +335,8 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
         transform.apply(leftHand, poseStack);
 
         poseStack.translate(-offset, offset, 0F);
-        poseStack.mulPose(Axis.ZP.rotationDegrees(rotationZ));
-        poseStack.mulPose(Axis.XP.rotationDegrees(rotationX));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(90F));
 
         poseStack.pushPose();
         renderStage1(poseStack, state, scale1);
@@ -447,4 +355,33 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
         state.endFrame();
     }
 
+    @Shadow
+    @Final
+    private ItemStackRenderState scratchItemStackRenderState;
+
+    @Inject(
+            method = ENTITY_RENDER_STATIC,
+            at = @At("TAIL")
+    )
+    private void bowcasting$renderSpell(
+            LivingEntity livingEntity,
+            ItemStack itemStack,
+            ItemDisplayContext itemDisplayContext,
+            boolean bl,
+            PoseStack poseStack,
+            MultiBufferSource multiBufferSource,
+            Level level,
+            int light,
+            int overlay,
+            int seed,
+            CallbackInfo ci
+    ) {
+        bowcasting$drawSpell(
+                itemStack,
+                itemDisplayContext,
+                poseStack,
+                scratchItemStackRenderState.transform(),
+                bl
+        );
+    }
 }
