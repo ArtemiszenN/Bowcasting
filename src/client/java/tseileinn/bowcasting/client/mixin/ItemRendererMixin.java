@@ -47,6 +47,134 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
     private static final String STAGE_3_PATH = "textures/spell/stage3.png";
 
     @Unique
+    private static final String ENTITY_RENDER_STATIC =
+            "renderStatic(Lnet/minecraft/world/entity/LivingEntity;" +
+                    "Lnet/minecraft/world/item/ItemStack;" +
+                    "Lnet/minecraft/world/item/ItemDisplayContext;" +
+                    "Z" +
+                    "Lcom/mojang/blaze3d/vertex/PoseStack;" +
+                    "Lnet/minecraft/client/renderer/MultiBufferSource;" +
+                    "Lnet/minecraft/world/level/Level;" +
+                    "III)V";
+
+    @Unique
+    private static final ThreadLocal<Deque<Boolean>> bowcasting$entityScopes =
+            ThreadLocal.withInitial(ArrayDeque::new);
+
+    @Inject(method = ENTITY_RENDER_STATIC, at = @At("HEAD"))
+    private void bowcasting$captureEntity(
+            LivingEntity livingEntity,
+            ItemStack itemStack,
+            ItemDisplayContext itemDisplayContext,
+            boolean bl,
+            PoseStack poseStack,
+            MultiBufferSource buffers,
+            Level level,
+            int light,
+            int overlay,
+            int seed,
+            CallbackInfo ci
+    ) {
+        bowcasting$entityScopes.get().push(
+                livingEntity != null
+                        && livingEntity == Minecraft.getInstance().player
+        );
+    }
+
+    @Inject(method = ENTITY_RENDER_STATIC, at = @At("RETURN"))
+    private void bowcasting$releaseEntity(CallbackInfo ci) {
+        bowcasting$entityScopes.get().pop();
+    }
+
+    @Unique
+    private static boolean bowcasting$isLocalPlayerRender() {
+        return Boolean.TRUE.equals(
+                bowcasting$entityScopes.get().peek()
+        );
+    }
+
+//    @Unique
+//    private static void renderGizmo(PoseStack poseStack) {
+//        RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
+//
+//        PoseStack.Pose pose = poseStack.last();
+//
+//        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+//        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+//
+//        float length = 0.5f;
+//
+//        // X = red
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
+//                .color(255, 0, 0, 255)
+//                .endVertex();
+//
+//        buffer.vertex(pose.pose(), length, 0.0f, 0.0f)
+//                .color(255, 0, 0, 255)
+//                .endVertex();
+//
+//        // Y = green
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
+//                .color(0, 255, 0, 255)
+//                .endVertex();
+//
+//        buffer.vertex(pose.pose(), 0.0f, length, 0.0f)
+//                .color(0, 255, 0, 255)
+//                .endVertex();
+//
+//        // Z = blue
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
+//                .color(0, 0, 255, 255)
+//                .endVertex();
+//
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, length)
+//                .color(0, 0, 255, 255)
+//                .endVertex();
+//
+//        Tesselator.getInstance().end();
+//    }
+//    @Unique
+//    private static void renderGizmo(PoseStack poseStack) {
+//        RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
+//
+//        PoseStack.Pose pose = poseStack.last();
+//
+//        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+//        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+//
+//        float length = 0.5f;
+//
+//        // X = red
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
+//                .color(255, 0, 0, 255)
+//                .endVertex();
+//
+//        buffer.vertex(pose.pose(), length, 0.0f, 0.0f)
+//                .color(255, 0, 0, 255)
+//                .endVertex();
+//
+//        // Y = green
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
+//                .color(0, 255, 0, 255)
+//                .endVertex();
+//
+//        buffer.vertex(pose.pose(), 0.0f, length, 0.0f)
+//                .color(0, 255, 0, 255)
+//                .endVertex();
+//
+//        // Z = blue
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
+//                .color(0, 0, 255, 255)
+//                .endVertex();
+//
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, length)
+//                .color(0, 0, 255, 255)
+//                .endVertex();
+//
+//        Tesselator.getInstance().end();
+//    }
+
+    @Unique
     private static void beginTexture(String path) {
         RenderSystem.setShader(CoreShaders.POSITION_TEX);
 
@@ -157,9 +285,44 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
         endTexture(poseStack);
     }
 
-    @Shadow
-    @Final
-    private ItemStackRenderState scratchItemStackRenderState;
+    @Unique
+    private static ItemStack bowcasting$getStateOwner(
+            ItemStack rendered,
+            ItemDisplayContext context
+    ) {
+        // Do not borrow animation states from other entities.
+        if (!bowcasting$isLocalPlayerRender()) {
+            return rendered;
+        }
+
+        boolean rightHand =
+                context == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+                        || context == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
+
+        boolean leftHand =
+                context == ItemDisplayContext.FIRST_PERSON_LEFT_HAND
+                        || context == ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
+
+        if (!rightHand && !leftHand) {
+            return rendered;
+        }
+
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) {
+            return rendered;
+        }
+
+        boolean mainHand =
+                (player.getMainArm() == HumanoidArm.RIGHT) == rightHand;
+
+        ItemStack actual = mainHand
+                ? player.getMainHandItem()
+                : player.getOffhandItem();
+
+        return ItemStack.isSameItemSameComponents(actual, rendered)
+                ? actual
+                : rendered;
+    }
 
     @Inject(
             method = "renderStatic(Lnet/minecraft/world/entity/LivingEntity;" +
