@@ -2,7 +2,6 @@ package tseileinn.bowcasting;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import dev.lambdaurora.lambdynlights.api.DynamicLightsInitializer;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
@@ -10,7 +9,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,8 +39,8 @@ public class Bowcasting implements ModInitializer {
 					FabricParticleTypes.simple(true)
 			);
 
-	public static ResourceLocation id(String path) {
-		return Objects.requireNonNull(ResourceLocation.tryBuild(MOD_ID, path));
+	public static Identifier id(String path) {
+		return Objects.requireNonNull(Identifier.tryBuild(MOD_ID, path));
 	}
 
 	public static final Path CONFIG_DIR = FabricLoader.getInstance().getConfigDir()

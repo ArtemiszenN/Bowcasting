@@ -7,7 +7,7 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.model.ItemTransform;
 import net.minecraft.client.renderer.entity.ItemRenderer;
@@ -59,7 +59,7 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
     ) {
         collector.submitCustomGeometry(
                 poseStack,
-                RenderType.eyes(Bowcasting.id(path)),
+                RenderTypes.eyes(Bowcasting.id(path)),
                 (pose, vertex) -> {
                     // Front
                     addRuneVertex(vertex, pose, -0.5f, -0.5f, 0, 1,  1);
@@ -97,7 +97,7 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
         Camera camera = Minecraft.getInstance()
                 .gameRenderer
                 .getMainCamera();
-        Vec3 cameraPos = camera.getPosition();
+        Vec3 cameraPos = camera.position();
         Quaternionf cameraRotation = camera.rotation();
         Vector3f lightPos = new Vector3f(0, 0, 0);
         poseStack.last().pose().transformPosition(lightPos);
