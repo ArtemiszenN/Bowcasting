@@ -103,9 +103,7 @@ public final class BowcastingSpellRendererImpl implements BowcastingSpellRendere
     @Unique
     private static void renderStage1(PoseStack poseStack, SubmitNodeCollector collector, BowcastingAnimationState state, float scaleMultiplier) {
         state.stage1Simulate();
-        poseStack.mulPose(
-                Axis.ZP.rotationDegrees((float) state.stage_1_rotation)
-        );
+        poseStack.rotateDegrees(Axis.ZP, (float) state.stage_1_rotation);
         poseStack.translate(
                 0f,
                 0f,
@@ -120,7 +118,7 @@ public final class BowcastingSpellRendererImpl implements BowcastingSpellRendere
     @Unique
     private static void renderStage2(PoseStack poseStack, SubmitNodeCollector collector, BowcastingAnimationState state, float scaleMultiplier) {
         state.stage2Simulate();
-        poseStack.mulPose(Axis.ZP.rotationDegrees((float) state.stage_2_rotation));
+        poseStack.rotateDegrees(Axis.ZP, (float) state.stage_2_rotation);
         poseStack.translate(0f, 0f, -state.stage_2_transform);
         float scale = state.stage_2_scale * scaleMultiplier;
         poseStack.scale(scale, scale, scale);
@@ -131,7 +129,7 @@ public final class BowcastingSpellRendererImpl implements BowcastingSpellRendere
     @Unique
     private static void renderStage3(PoseStack poseStack, SubmitNodeCollector collector, BowcastingAnimationState state, float scaleMultiplier) {
         state.stage3Simulate();
-        poseStack.mulPose(Axis.ZP.rotationDegrees((float) state.stage_3_rotation));
+        poseStack.rotateDegrees(Axis.ZP, (float) state.stage_3_rotation);
         poseStack.translate(0f, 0f, -state.stage_3_transform);
         float scale = state.stage_3_scale * scaleMultiplier;
         poseStack.scale(scale, scale, scale);
@@ -196,8 +194,8 @@ public final class BowcastingSpellRendererImpl implements BowcastingSpellRendere
         float finalX = bow ? 0.75F : 0.7F;
 
         poseStack.translate(-offset, offset, 0F);
-        poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
-        poseStack.mulPose(Axis.XP.rotationDegrees(100F));
+        poseStack.rotateDegrees(Axis.ZP, 45F);
+        poseStack.rotateDegrees(Axis.XP, 100F);
         poseStack.translate(finalX, 0.5F, 0F);
 
         poseStack.pushPose();
