@@ -7,8 +7,10 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.CoreShaders;
+import net.minecraft.client.renderer.block.model.ItemTransform;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BowItem;
@@ -29,11 +31,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import tseileinn.bowcasting.Bowcasting;
+import tseileinn.bowcasting.client.BowcastingSpellRenderer;
 import tseileinn.bowcasting.client.animation.BowcastingAnimationState;
 import tseileinn.bowcasting.client.animation.BowcastingAnimationStateHolder;
 
 @Mixin(ItemRenderer.class)
-public class ItemRendererMixin {
+public class ItemRendererMixin implements BowcastingSpellRenderer {
     @Unique
     private static final float CROSSBOW_MULTIPLIER = 0.15f;
     @Unique
@@ -181,87 +184,104 @@ public class ItemRendererMixin {
             int overlay,
             int seed,
             CallbackInfo ci
+    ){
+        bowcasting$drawSpell(
+                itemStack,
+                itemDisplayContext,
+                poseStack,
+                scratchItemStackRenderState.transform(),
+                bl
+        );
+    };
+
+
+    @Override
+    public void bowcasting$drawSpell(
+            ItemStack itemStack,
+            ItemDisplayContext context,
+            PoseStack poseStack,
+            ItemTransform transform,
+            boolean leftHand
     ) {
-        if (itemDisplayContext != ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
-                && itemDisplayContext != ItemDisplayContext.FIRST_PERSON_LEFT_HAND
-                && itemDisplayContext != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
-                && itemDisplayContext != ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
+        boolean firstPerson =
+                context == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+                        || context == ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
+
+        boolean thirdPerson =
+                context == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
+                        || context == ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
+
+        if (!firstPerson && !thirdPerson) {
             return;
         }
 
-        if (itemStack.getItem() instanceof BowItem && Bowcasting.CONFIG.renderBowRune) {
-            BowcastingAnimationState state =
-                    ((BowcastingAnimationStateHolder) (Object) itemStack)
-                            .bowcasting$getAnimationState();
+        boolean bow = itemStack.getItem() instanceof BowItem;
+        boolean crossbow = itemStack.getItem() instanceof CrossbowItem;
 
-            if (state.isDead()) {
-                return;
-            }
-
-            poseStack.pushPose();
-
-            scratchItemStackRenderState.transform().apply(bl, poseStack);
-
-            poseStack.translate(-0.5F, 0.5F, 0F);
-            poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
-            poseStack.mulPose(Axis.XP.rotationDegrees(100F));
-
-            poseStack.pushPose();
-            renderStage1(poseStack, state, Bowcasting.CONFIG.scaleMultiplier1);
-            poseStack.popPose();
-
-            poseStack.pushPose();
-            renderStage2(poseStack, state, Bowcasting.CONFIG.scaleMultiplier2);
-            poseStack.popPose();
-
-            poseStack.pushPose();
-            renderStage3(poseStack, state, Bowcasting.CONFIG.scaleMultiplier3);
-            poseStack.popPose();
-
-            poseStack.popPose();
-
-            state.endFrame();
+        if (!(bow && Bowcasting.CONFIG.renderBowRune)
+                && !(crossbow && Bowcasting.CONFIG.renderCrossbowRune)) {
+            return;
         }
 
-        if (itemStack.getItem() instanceof CrossbowItem && Bowcasting.CONFIG.renderCrossbowRune) {
-            BowcastingAnimationState state =
-                    ((BowcastingAnimationStateHolder) (Object) itemStack)
-                            .bowcasting$getAnimationState();
+        BowcastingAnimationState state =
+                ((BowcastingAnimationStateHolder) (Object) itemStack)
+                        .bowcasting$getAnimationState();
 
-            if (CrossbowItem.isCharged(itemStack)) {
-                if (state.isDead()) {
-                    state.crossbowChargedStartAnim(itemStack, null);
-                }
-                state.heartbeat();
-            }
-
+        if (crossbow && CrossbowItem.isCharged(itemStack)) {
             if (state.isDead()) {
-                return;
+                state.crossbowChargedStartAnim(itemStack, null);
             }
-
-            poseStack.pushPose();
-
-            scratchItemStackRenderState.transform().apply(bl, poseStack);
-
-            poseStack.translate(-0.2F, 0.2F, 0F);
-            poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
-            poseStack.mulPose(Axis.XP.rotationDegrees(100F));
-
-            poseStack.pushPose();
-            renderStage1(poseStack, state, CROSSBOW_MULTIPLIER * Bowcasting.CONFIG.xbowScaleMultiplier1);
-            poseStack.popPose();
-
-            poseStack.pushPose();
-            renderStage2(poseStack, state, CROSSBOW_MULTIPLIER * Bowcasting.CONFIG.xbowScaleMultiplier2);
-            poseStack.popPose();
-
-            poseStack.pushPose();
-            renderStage3(poseStack, state, CROSSBOW_MULTIPLIER * Bowcasting.CONFIG.xbowScaleMultiplier3);
-            poseStack.popPose();
-
-            poseStack.popPose();
-
-            state.endFrame();
+            state.heartbeat();
         }
+
+        if (state.isDead()) {
+            return;
+        }
+
+        // Position and rotation tuning
+        float offset = bow ? 0.5F : 0.2F;
+
+        float rotationZ = 45F;
+        float rotationX = 100F;
+
+        // Per-weapon stage scaling
+        float multiplier = bow ? 1F : CROSSBOW_MULTIPLIER;
+
+        float scale1 = multiplier * (bow
+                ? Bowcasting.CONFIG.scaleMultiplier1
+                : Bowcasting.CONFIG.xbowScaleMultiplier1);
+
+        float scale2 = multiplier * (bow
+                ? Bowcasting.CONFIG.scaleMultiplier2
+                : Bowcasting.CONFIG.xbowScaleMultiplier2);
+
+        float scale3 = multiplier * (bow
+                ? Bowcasting.CONFIG.scaleMultiplier3
+                : Bowcasting.CONFIG.xbowScaleMultiplier3);
+
+        poseStack.pushPose();
+
+        transform.apply(leftHand, poseStack);
+
+        poseStack.translate(-offset, offset, 0F);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(rotationZ));
+        poseStack.mulPose(Axis.XP.rotationDegrees(rotationX));
+
+        poseStack.pushPose();
+        renderStage1(poseStack, state, scale1);
+        poseStack.popPose();
+
+        poseStack.pushPose();
+        renderStage2(poseStack, state, scale2);
+        poseStack.popPose();
+
+        poseStack.pushPose();
+        renderStage3(poseStack, state, scale3);
+        poseStack.popPose();
+
+        poseStack.popPose();
+
+        state.endFrame();
     }
+
 }
