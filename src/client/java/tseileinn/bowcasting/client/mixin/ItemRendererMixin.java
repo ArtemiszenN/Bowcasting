@@ -93,46 +93,46 @@ public class ItemRendererMixin {
         );
     }
 
-    @Unique
-    private static void renderGizmo(PoseStack poseStack) {
-        RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
-
-        PoseStack.Pose pose = poseStack.last();
-
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
-
-        float length = 0.5f;
-
-        // X = red
-        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-                .color(255, 0, 0, 255)
-                .endVertex();
-
-        buffer.vertex(pose.pose(), length, 0.0f, 0.0f)
-                .color(255, 0, 0, 255)
-                .endVertex();
-
-        // Y = green
-        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-                .color(0, 255, 0, 255)
-                .endVertex();
-
-        buffer.vertex(pose.pose(), 0.0f, length, 0.0f)
-                .color(0, 255, 0, 255)
-                .endVertex();
-
-        // Z = blue
-        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-                .color(0, 0, 255, 255)
-                .endVertex();
-
-        buffer.vertex(pose.pose(), 0.0f, 0.0f, length)
-                .color(0, 0, 255, 255)
-                .endVertex();
-
-        Tesselator.getInstance().end();
-    }
+//    @Unique
+//    private static void renderGizmo(PoseStack poseStack) {
+//        RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
+//
+//        PoseStack.Pose pose = poseStack.last();
+//
+//        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
+//        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
+//
+//        float length = 0.5f;
+//
+//        // X = red
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
+//                .color(255, 0, 0, 255)
+//                .endVertex();
+//
+//        buffer.vertex(pose.pose(), length, 0.0f, 0.0f)
+//                .color(255, 0, 0, 255)
+//                .endVertex();
+//
+//        // Y = green
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
+//                .color(0, 255, 0, 255)
+//                .endVertex();
+//
+//        buffer.vertex(pose.pose(), 0.0f, length, 0.0f)
+//                .color(0, 255, 0, 255)
+//                .endVertex();
+//
+//        // Z = blue
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
+//                .color(0, 0, 255, 255)
+//                .endVertex();
+//
+//        buffer.vertex(pose.pose(), 0.0f, 0.0f, length)
+//                .color(0, 0, 255, 255)
+//                .endVertex();
+//
+//        Tesselator.getInstance().end();
+//    }
 //    @Unique
 //    private static void renderGizmo(PoseStack poseStack) {
 //        RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
@@ -317,7 +317,7 @@ public class ItemRendererMixin {
                 ? player.getMainHandItem()
                 : player.getOffhandItem();
 
-        return ItemStack.isSameItemSameTags(actual, rendered)
+        return ItemStack.isSameItemSameComponents(actual, rendered)
                 ? actual
                 : rendered;
     }
