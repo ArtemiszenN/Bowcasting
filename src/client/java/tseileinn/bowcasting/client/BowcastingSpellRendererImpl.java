@@ -82,7 +82,7 @@ public final class BowcastingSpellRendererImpl implements BowcastingSpellRendere
     private static void drawWorldLight(PoseStack poseStack, BowcastingAnimationState state, int index) {
         Camera camera = Minecraft.getInstance()
                 .gameRenderer
-                .getMainCamera();
+                .mainCamera();
         Vec3 cameraPos = camera.position();
         Quaternionf cameraRotation = camera.rotation();
         Vector3f lightPos = new Vector3f(0, 0, 0);

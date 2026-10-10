@@ -36,6 +36,7 @@ loom {
 	}
 }
 
+
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
@@ -43,18 +44,19 @@ dependencies {
 
 	// Cloth Config
 	compileOnly "me.shedaniel.cloth:cloth-config-fabric:26.1.154"
-//	localRuntime "me.shedaniel.cloth:cloth-config-fabric:26.1.154"
+	localRuntime "me.shedaniel.cloth:cloth-config-fabric:26.2.155"
 
 	// Mod Menu
 	compileOnly "com.terraformersmc:modmenu:18.0.2"
-//	localRuntime "com.terraformersmc:modmenu:18.0.2"
+	localRuntime "com.terraformersmc:modmenu:20.0.3"
 
 	// LambDynamicLights
 	compileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:4.10.0+26.1")
-//	localRuntime("dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:4.10.0+26.1") {
-//		exclude group: "net.fabricmc.fabric-api"
-//	}
+	localRuntime("dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:4.12.4+26.2") {
+		exclude group: "net.fabricmc.fabric-api"
+	}
 }
+
 
 processResources {
 	def version = project.version
