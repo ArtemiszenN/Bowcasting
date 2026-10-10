@@ -14,7 +14,7 @@ public abstract class AbstractArrowMixin {
     private void bowcasting$spawnRuneTrail(CallbackInfo ci) {
         AbstractArrow arrow = (AbstractArrow)(Object)this;
 
-        if (!arrow.level().isClientSide) {
+        if (!arrow.level().isClientSide()) {
             return;
         }
 
@@ -22,7 +22,9 @@ public abstract class AbstractArrowMixin {
             return;
         }
 
-        var v = arrow.getDeltaMovement();
+        if (arrow.tickCount % 2 != 0) {
+            return;
+        }
 
         arrow.level().addParticle(
                 Bowcasting.RUNE_PARTICLE,

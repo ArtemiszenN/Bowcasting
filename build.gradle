@@ -44,16 +44,18 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	// Cloth Config
-	modCompileOnly "me.shedaniel.cloth:cloth-config-fabric:19.0.147"
-	modLocalRuntime "me.shedaniel.cloth:cloth-config-fabric:19.0.147"
+	modCompileOnly "me.shedaniel.cloth:cloth-config-fabric:20.0.149"
+	modLocalRuntime "me.shedaniel.cloth:cloth-config-fabric:20.0.149"
 
 	// Mod Menu
-	modCompileOnly "com.terraformersmc:modmenu:15.0.1"
-	modLocalRuntime "com.terraformersmc:modmenu:15.0.1"
+	modCompileOnly "com.terraformersmc:modmenu:16.0.0"
+	modLocalRuntime "com.terraformersmc:modmenu:16.0.0"
 
 	// LambDynamicLights
-	modCompileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:4.8.7+1.21.8")
-	modLocalRuntime("dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:4.8.7+1.21.8") {exclude group: "net.fabricmc.fabric-api"}
+	modCompileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:4.7.2+1.21.9")
+	modLocalRuntime("dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:4.8.7+1.21.10") {
+		exclude group: "net.fabricmc.fabric-api"
+	}
 }
 
 processResources {

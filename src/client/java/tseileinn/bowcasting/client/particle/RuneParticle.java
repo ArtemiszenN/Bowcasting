@@ -1,21 +1,23 @@
+
 package tseileinn.bowcasting.client.particle;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.Mth;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.util.RandomSource;
 import tseileinn.bowcasting.Bowcasting;
 
-public class RuneParticle extends TextureSheetParticle {
+public class RuneParticle extends SingleQuadParticle {
 
     protected RuneParticle(
             ClientLevel level,
             double x, double y, double z,
             double xd, double yd, double zd,
-            SpriteSet sprites
+            TextureAtlasSprite sprite
     ) {
-        super(level, x, y, z, xd, yd, zd);
+        super(level, x, y, z, xd, yd, zd, sprite);
 
         this.friction = 1.0f;
         this.gravity = 0.0f;
@@ -27,18 +29,7 @@ public class RuneParticle extends TextureSheetParticle {
         this.quadSize = 0.2f;
         this.alpha = 1.0f;
 
-        int version = Mth.clamp(
-                Bowcasting.CONFIG.runeParticleVersion,
-                1,
-                Bowcasting.BowcastingConfig.RUNE_PARTICLE_VERSIONS
-        );
-
-        this.setSprite(sprites.get(
-                version - 1,
-                Bowcasting.BowcastingConfig.RUNE_PARTICLE_VERSIONS - 1
-        ));
-
-        this.roll = this.random.nextFloat() * ((float)Math.PI * 2f);
+        this.roll = this.random.nextFloat() * ((float) Math.PI * 2f);
         this.oRoll = this.roll;
     }
 
@@ -63,8 +54,8 @@ public class RuneParticle extends TextureSheetParticle {
     }
 
     @Override
-    public @NotNull ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+    public Layer getLayer() {
+        return Layer.TRANSLUCENT;
     }
 
     @Override
@@ -84,9 +75,21 @@ public class RuneParticle extends TextureSheetParticle {
                 SimpleParticleType type,
                 ClientLevel level,
                 double x, double y, double z,
-                double xd, double yd, double zd
+                double xd, double yd, double zd,
+                RandomSource random
         ) {
-            return new RuneParticle(level, x, y, z, xd, yd, zd, sprites);
+            int version = Mth.clamp(
+                    Bowcasting.CONFIG.runeParticleVersion,
+                    1,
+                    Bowcasting.BowcastingConfig.RUNE_PARTICLE_VERSIONS
+            );
+
+            TextureAtlasSprite sprite = sprites.get(
+                    version - 1,
+                    Bowcasting.BowcastingConfig.RUNE_PARTICLE_VERSIONS - 1
+            );
+
+            return new RuneParticle(level, x, y, z, xd, yd, zd, sprite);
         }
     }
 }

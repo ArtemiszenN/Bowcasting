@@ -11,7 +11,8 @@
 		"AbstractArrowMixin",
 		"ItemStackLayerMixin",
 		"ItemModelResolverMixin",
-		"ItemInHandLayerMixin"
+		"ItemInHandLayerMixin",
+		"ItemInHandRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
