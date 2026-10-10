@@ -57,7 +57,7 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
     ) {
         VertexConsumer vertex = buffers.getBuffer(
                 //RenderType.entityTranslucentEmissive(Bowcasting.id(path))
-                RenderType.eyes(Bowcasting.id(path))
+                RenderType.energySwirl(Bowcasting.id(path), 0F, 0F)
         );
 
         PoseStack.Pose pose = poseStack.last();
@@ -240,14 +240,10 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
                 : Bowcasting.CONFIG.xbowScaleMultiplier3);
 
         poseStack.pushPose();
-        float offset = bow ? 0.5F : 0.2F;
         float finalX = bow ? 0.75F : 0.7F;
-
-        poseStack.translate(-offset, offset, 0F);
         poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
         poseStack.mulPose(Axis.XP.rotationDegrees(100F));
-        poseStack.translate(finalX, 0.5F, 0F);
-
+        poseStack.translate(finalX, 0.4F, -0.5F);
         poseStack.pushPose();
         renderStage1(poseStack, buffers, state, scale1);
         poseStack.popPose();
