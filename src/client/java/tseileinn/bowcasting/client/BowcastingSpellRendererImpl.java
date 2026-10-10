@@ -45,7 +45,7 @@ public final class BowcastingSpellRendererImpl implements BowcastingSpellRendere
     ) {
         collector.submitCustomGeometry(
                 poseStack,
-                RenderTypes.eyes(Bowcasting.id(path)),
+                RenderTypes.energySwirl(Bowcasting.id(path), 0F, 0F),
                 (pose, vertex) -> {
                     // Front
                     addRuneVertex(vertex, pose, -0.5f, -0.5f, 0, 1,  1);
@@ -190,13 +190,11 @@ public final class BowcastingSpellRendererImpl implements BowcastingSpellRendere
                 : Bowcasting.CONFIG.xbowScaleMultiplier3);
 
         poseStack.pushPose();
-        float offset = bow ? 0.5F : 0.2F;
         float finalX = bow ? 0.75F : 0.7F;
 
-        poseStack.translate(-offset, offset, 0F);
         poseStack.rotateDegrees(Axis.ZP, 45F);
         poseStack.rotateDegrees(Axis.XP, 100F);
-        poseStack.translate(finalX, 0.5F, 0F);
+        poseStack.translate(finalX, 0.4F, -0.5F);
 
         poseStack.pushPose();
         renderStage1(poseStack, collector, state, scale1);
