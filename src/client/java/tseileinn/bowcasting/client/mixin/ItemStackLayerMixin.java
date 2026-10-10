@@ -1,3 +1,4 @@
+
 package tseileinn.bowcasting.client.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -15,8 +16,8 @@ public class ItemStackLayerMixin {
             method = "submit",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/block/model/ItemTransform;" +
-                            "apply(ZLcom/mojang/blaze3d/vertex/PoseStack$Pose;)V",
+                    target = "Lnet/minecraft/client/renderer/item/ItemStackRenderState$LayerRenderState;" +
+                            "applyTransform(Lcom/mojang/blaze3d/vertex/PoseStack$Pose;)V",
                     shift = At.Shift.AFTER
             )
     )

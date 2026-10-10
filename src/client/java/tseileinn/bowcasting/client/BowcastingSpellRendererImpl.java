@@ -1,47 +1,33 @@
-package tseileinn.bowcasting.client.mixin;
+package tseileinn.bowcasting.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.block.model.ItemTransform;
-import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import tseileinn.bowcasting.Bowcasting;
-import tseileinn.bowcasting.client.BowcastingSpellRenderer;
 import tseileinn.bowcasting.client.animation.BowcastingAnimationState;
 import tseileinn.bowcasting.client.animation.BowcastingAnimationStateHolder;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import tseileinn.bowcasting.client.BowcastingRenderHook;
+public final class BowcastingSpellRendererImpl implements BowcastingSpellRenderer {
 
-@Mixin(ItemRenderer.class)
-public class ItemRendererMixin implements BowcastingSpellRenderer {
+    public static final BowcastingSpellRendererImpl INSTANCE =
+            new BowcastingSpellRendererImpl();
+
+    private BowcastingSpellRendererImpl() {
+    }
+
     @Unique
     private static final float CROSSBOW_MULTIPLIER = 0.15f;
     @Unique

@@ -59,7 +59,7 @@ public class RuneParticle extends SingleQuadParticle {
     }
 
     @Override
-    protected int getLightColor(float partialTick) {
+    protected int getLightCoords(float partialTick) {
         return 240;
     }
 
