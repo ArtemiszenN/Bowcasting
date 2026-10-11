@@ -1,388 +1,96 @@
 package tseileinn.bowcasting.client.mixin;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
-import com.mojang.math.Axis;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.BowItem;
-import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
-import org.lwjgl.opengl.GL11;
+
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import tseileinn.bowcasting.Bowcasting;
-import tseileinn.bowcasting.client.animation.BowcastingAnimationState;
-import tseileinn.bowcasting.client.animation.BowcastingAnimationStateHolder;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import tseileinn.bowcasting.client.animation.BowcastingAnimationState;
+import tseileinn.bowcasting.client.animation.BowcastingHandAnimationStateHolder;
+import tseileinn.bowcasting.client.render.BowcastingSpellRenderer;
 
 @Mixin(ItemRenderer.class)
-public class ItemRendererMixin {
-    @Unique
-    private static final float CROSSBOW_MULTIPLIER = 0.15f;
-    @Unique
-    private static final String STAGE_1_PATH = "textures/spell/stage1.png";
-    @Unique
-    private static final String STAGE_2_PATH = "textures/spell/stage2.png";
-    @Unique
-    private static final String STAGE_3_PATH = "textures/spell/stage3.png";
+public abstract class ItemRendererMixin {
 
-    @Unique
-    private static final String ENTITY_RENDER_STATIC =
-            "renderStatic(Lnet/minecraft/world/entity/LivingEntity;" +
-                    "Lnet/minecraft/world/item/ItemStack;" +
-                    "Lnet/minecraft/world/item/ItemDisplayContext;" +
-                    "Z" +
-                    "Lcom/mojang/blaze3d/vertex/PoseStack;" +
-                    "Lnet/minecraft/client/renderer/MultiBufferSource;" +
-                    "Lnet/minecraft/world/level/Level;" +
-                    "III)V";
-
-    @Unique
-    private static final ThreadLocal<Deque<Boolean>> bowcasting$entityScopes =
-            ThreadLocal.withInitial(ArrayDeque::new);
-
-    @Inject(method = ENTITY_RENDER_STATIC, at = @At("HEAD"))
-    private void bowcasting$captureEntity(
-            LivingEntity livingEntity,
-            ItemStack itemStack,
-            ItemDisplayContext itemDisplayContext,
-            boolean bl,
+    @Inject(
+            method = "renderStatic("
+                    + "Lnet/minecraft/world/entity/LivingEntity;"
+                    + "Lnet/minecraft/world/item/ItemStack;"
+                    + "Lnet/minecraft/world/item/ItemDisplayContext;"
+                    + "Z"
+                    + "Lcom/mojang/blaze3d/vertex/PoseStack;"
+                    + "Lnet/minecraft/client/renderer/MultiBufferSource;"
+                    + "Lnet/minecraft/world/level/Level;"
+                    + "III)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/entity/ItemRenderer;render("
+                            + "Lnet/minecraft/world/item/ItemStack;"
+                            + "Lnet/minecraft/world/item/ItemDisplayContext;"
+                            + "Z"
+                            + "Lcom/mojang/blaze3d/vertex/PoseStack;"
+                            + "Lnet/minecraft/client/renderer/MultiBufferSource;"
+                            + "II"
+                            + "Lnet/minecraft/client/resources/model/BakedModel;"
+                            + ")V"
+            )
+    )
+    private void bowcasting$renderFirstPerson(
+            @Nullable LivingEntity entity,
+            ItemStack stack,
+            ItemDisplayContext context,
+            boolean leftHand,
             PoseStack poseStack,
             MultiBufferSource buffers,
-            Level level,
+            @Nullable Level level,
             int light,
             int overlay,
             int seed,
-            CallbackInfo ci
+            CallbackInfo ci,
+            @Local BakedModel bakedModel
     ) {
-        bowcasting$entityScopes.get().push(
-                livingEntity != null
-                        && livingEntity == Minecraft.getInstance().player
-        );
-    }
-
-    @Inject(method = ENTITY_RENDER_STATIC, at = @At("RETURN"))
-    private void bowcasting$releaseEntity(CallbackInfo ci) {
-        bowcasting$entityScopes.get().pop();
-    }
-
-    @Unique
-    private static boolean bowcasting$isLocalPlayerRender() {
-        return Boolean.TRUE.equals(
-                bowcasting$entityScopes.get().peek()
-        );
-    }
-
-    @Unique
-    private static void renderGizmo(PoseStack poseStack) {
-        RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
-
-        PoseStack.Pose pose = poseStack.last();
-
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
-
-        float length = 0.5f;
-
-        // X = red
-        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-                .color(255, 0, 0, 255)
-                .endVertex();
-
-        buffer.vertex(pose.pose(), length, 0.0f, 0.0f)
-                .color(255, 0, 0, 255)
-                .endVertex();
-
-        // Y = green
-        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-                .color(0, 255, 0, 255)
-                .endVertex();
-
-        buffer.vertex(pose.pose(), 0.0f, length, 0.0f)
-                .color(0, 255, 0, 255)
-                .endVertex();
-
-        // Z = blue
-        buffer.vertex(pose.pose(), 0.0f, 0.0f, 0.0f)
-                .color(0, 0, 255, 255)
-                .endVertex();
-
-        buffer.vertex(pose.pose(), 0.0f, 0.0f, length)
-                .color(0, 0, 255, 255)
-                .endVertex();
-
-        Tesselator.getInstance().end();
-    }
-
-    @Unique
-    private static void beginTexture(String path){
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(
-                0,
-                Bowcasting.id(path)
-        );
-        RenderSystem.enableDepthTest();
-        RenderSystem.depthFunc(GL11.GL_LEQUAL);
-        RenderSystem.enableBlend();
-        RenderSystem.disableCull();
-        RenderSystem.defaultBlendFunc();
-    }
-
-    @Unique
-    private static void endTexture(PoseStack poseStack){
-        PoseStack.Pose pose = poseStack.last();
-
-        BufferBuilder buffer = Tesselator.getInstance().getBuilder();
-        buffer.begin(
-                VertexFormat.Mode.QUADS,
-                DefaultVertexFormat.POSITION_TEX
-        );
-        buffer.vertex(pose.pose(), -0.5f, -0.5f, 0.0f)
-                .uv(0.0f, 1.0f)
-                .endVertex();
-
-        buffer.vertex(pose.pose(), 0.5f, -0.5f, 0.0f)
-                .uv(1.0f, 1.0f)
-                .endVertex();
-
-        buffer.vertex(pose.pose(), 0.5f, 0.5f, 0.0f)
-                .uv(1.0f, 0.0f)
-                .endVertex();
-
-        buffer.vertex(pose.pose(), -0.5f, 0.5f, 0.0f)
-                .uv(0.0f, 0.0f)
-                .endVertex();
-
-        Tesselator.getInstance().end();
-
-        RenderSystem.disableBlend();
-        RenderSystem.enableCull();
-    }
-
-    @Unique
-    private static void drawWorldLight(PoseStack poseStack, BowcastingAnimationState state, int index) {
-        Camera camera = Minecraft.getInstance()
-                .gameRenderer
-                .getMainCamera();
-        Vec3 cameraPos = camera.getPosition();
-        Quaternionf cameraRotation = camera.rotation();
-        Vector3f lightPos = new Vector3f(0, 0, 0);
-        poseStack.last().pose().transformPosition(lightPos);
-        lightPos.rotate(cameraRotation);
-        Vec3 worldPos = cameraPos.add(
-                lightPos.x(),
-                lightPos.y(),
-                lightPos.z()
-        );
-        state.lights[index].setPosition(
-                worldPos.x,
-                worldPos.y,
-                worldPos.z
-        );
-    }
-
-    @Unique
-    private static void renderStage1(
-            PoseStack poseStack,
-            BowcastingAnimationState state,
-            float scaleMultiplier
-    ) {
-        beginTexture(STAGE_1_PATH);
-        state.stage1Simulate();
-        poseStack.mulPose(
-                Axis.ZP.rotationDegrees((float) state.stage_1_rotation)
-        );
-        poseStack.translate(
-                0f,
-                0f,
-                -state.stage_1_transform
-        );
-        float scale = state.stage_1_scale * scaleMultiplier;
-        poseStack.scale(scale, scale, scale);
-        drawWorldLight(poseStack, state, 0);
-        endTexture(poseStack);
-    }
-
-    @Unique
-    private static void renderStage2(PoseStack poseStack, BowcastingAnimationState state, float scaleMultiplier) {
-        beginTexture(STAGE_2_PATH);
-        state.stage2Simulate();
-        poseStack.mulPose(Axis.ZP.rotationDegrees((float) state.stage_2_rotation));
-        poseStack.translate(0f, 0f, -state.stage_2_transform);
-        float scale = state.stage_2_scale * scaleMultiplier;
-        poseStack.scale(scale, scale, scale);
-        drawWorldLight(poseStack, state, 1);
-        endTexture(poseStack);
-    }
-
-    @Unique
-    private static void renderStage3(PoseStack poseStack, BowcastingAnimationState state, float scaleMultiplier) {
-        beginTexture(STAGE_3_PATH);
-        state.stage3Simulate();
-        poseStack.mulPose(Axis.ZP.rotationDegrees((float) state.stage_3_rotation));
-        poseStack.translate(0f, 0f, -state.stage_3_transform);
-        float scale = state.stage_3_scale * scaleMultiplier;
-        poseStack.scale(scale, scale, scale);
-        drawWorldLight(poseStack, state, 2);
-        endTexture(poseStack);
-    }
-
-    @Unique
-    private static ItemStack bowcasting$getStateOwner(
-            ItemStack rendered,
-            ItemDisplayContext context
-    ) {
-        // Do not borrow animation states from other entities.
-        if (!bowcasting$isLocalPlayerRender()) {
-            return rendered;
-        }
-
-        boolean rightHand =
-                context == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
-                        || context == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
-
-        boolean leftHand =
-                context == ItemDisplayContext.FIRST_PERSON_LEFT_HAND
-                        || context == ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
-
-        if (!rightHand && !leftHand) {
-            return rendered;
-        }
-
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) {
-            return rendered;
-        }
-
-        boolean mainHand =
-                (player.getMainArm() == HumanoidArm.RIGHT) == rightHand;
-
-        ItemStack actual = mainHand
-                ? player.getMainHandItem()
-                : player.getOffhandItem();
-
-        return ItemStack.isSameItemSameTags(actual, rendered)
-                ? actual
-                : rendered;
-    }
-
-    @Inject(
-            method = "render",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/block/model/ItemTransform;apply(ZLcom/mojang/blaze3d/vertex/PoseStack;)V",
-                    shift = At.Shift.AFTER
-            )
-    )
-    private void bowcasting$renderSpell(
-            ItemStack itemStack,
-            ItemDisplayContext itemDisplayContext,
-            boolean bl,
-            PoseStack poseStack,
-            MultiBufferSource multiBufferSource,
-            int light,
-            int overlay,
-            BakedModel bakedModel,
-            CallbackInfo ci
-    ) {
-        if (itemDisplayContext != ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
-                && itemDisplayContext != ItemDisplayContext.FIRST_PERSON_LEFT_HAND
-                && itemDisplayContext != ItemDisplayContext.THIRD_PERSON_RIGHT_HAND
-                && itemDisplayContext != ItemDisplayContext.THIRD_PERSON_LEFT_HAND) {
+        if (entity == null) {
             return;
         }
 
-        ItemStack owner = bowcasting$getStateOwner(
-                itemStack,
-                itemDisplayContext
+        HumanoidArm arm;
+
+        switch (context) {
+            case FIRST_PERSON_RIGHT_HAND, THIRD_PERSON_RIGHT_HAND ->
+                    arm = HumanoidArm.RIGHT;
+
+            case FIRST_PERSON_LEFT_HAND, THIRD_PERSON_LEFT_HAND ->
+                    arm = HumanoidArm.LEFT;
+
+            default -> {
+                return;
+            }
+        }
+
+        BowcastingAnimationState state =
+                ((BowcastingHandAnimationStateHolder) entity)
+                        .bowcasting$getAnimationState(arm);
+
+        BowcastingSpellRenderer.render(
+                stack,
+                context,
+                leftHand,
+                poseStack,
+                bakedModel,
+                state
         );
-
-        if (itemStack.getItem() instanceof BowItem
-                && Bowcasting.CONFIG.renderBowRune) {
-
-            BowcastingAnimationState state =
-                    ((BowcastingAnimationStateHolder) (Object) owner)
-                            .bowcasting$getAnimationState();
-
-            if (state.isDead()) {
-                return;
-            }
-
-            poseStack.pushPose();
-
-            poseStack.translate(-0.5F, 0.5F, 0F);
-            poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
-            poseStack.mulPose(Axis.XP.rotationDegrees(90F));
-            poseStack.pushPose();
-            renderStage1(poseStack, state, Bowcasting.CONFIG.scaleMultiplier1);
-            poseStack.popPose();
-            poseStack.pushPose();
-            renderStage2(poseStack, state, Bowcasting.CONFIG.scaleMultiplier2);
-            poseStack.popPose();
-            poseStack.pushPose();
-            renderStage3(poseStack, state, Bowcasting.CONFIG.scaleMultiplier3);
-            poseStack.popPose();
-
-            poseStack.popPose();
-
-            state.endFrame();
-        }
-
-        if (itemStack.getItem() instanceof CrossbowItem
-                && Bowcasting.CONFIG.renderCrossbowRune) {
-
-            BowcastingAnimationState state =
-                    ((BowcastingAnimationStateHolder) (Object) owner)
-                            .bowcasting$getAnimationState();
-            if (CrossbowItem.isCharged(itemStack)){
-                if (state.isDead()){
-                    state.crossbowChargedStartAnim(itemStack);
-                }
-                state.heartbeat();
-            }
-
-            if (state.isDead()) {
-                return;
-            }
-
-            poseStack.pushPose();
-
-            poseStack.translate(-0.2F, 0.2F, 0F);
-            poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
-            poseStack.mulPose(Axis.XP.rotationDegrees(90F));
-            poseStack.pushPose();
-            renderStage1(poseStack, state, CROSSBOW_MULTIPLIER * Bowcasting.CONFIG.xbowScaleMultiplier1);
-            poseStack.popPose();
-            poseStack.pushPose();
-            renderStage2(poseStack, state, CROSSBOW_MULTIPLIER * Bowcasting.CONFIG.xbowScaleMultiplier2);
-            poseStack.popPose();
-            poseStack.pushPose();
-            renderStage3(poseStack, state, CROSSBOW_MULTIPLIER * Bowcasting.CONFIG.xbowScaleMultiplier3);
-            poseStack.popPose();
-
-            poseStack.popPose();
-
-            state.endFrame();
-        }
     }
 }

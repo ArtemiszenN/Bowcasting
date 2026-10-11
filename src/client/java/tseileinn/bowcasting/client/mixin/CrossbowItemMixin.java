@@ -1,8 +1,7 @@
 package tseileinn.bowcasting.client.mixin;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CrossbowItem;
@@ -16,77 +15,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import tseileinn.bowcasting.client.animation.BowcastingAnimationState;
-import tseileinn.bowcasting.client.animation.BowcastingAnimationStateHolder;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
+import tseileinn.bowcasting.client.animation.BowcastingHandAnimationStateHolder;
 
 @Mixin(CrossbowItem.class)
 public class CrossbowItemMixin {
 
-    @Inject(
-            method = "releaseUsing",
-            at = @At("TAIL")
-    )
-    private void bowcasting$releaseUsing(
-            ItemStack itemStack,
-            Level level,
-            LivingEntity livingEntity,
-            int remainingUseTicks,
-            CallbackInfo ci
-    ) {
-        if (!level.isClientSide()) {
-            return;
-        }
-
-        BowcastingAnimationState state =
-                ((BowcastingAnimationStateHolder) (Object) itemStack)
-                        .bowcasting$getAnimationState();
-
-        if (CrossbowItem.isCharged(itemStack)) {
-            state.crossbowChargedCheck();
-            return;
-        }
-
-        state.stopAnim();
-    }
-
-    @Inject(
-            method = "use",
-            at = @At("HEAD")
-    )
-    private void bowcasting$use(
-            Level level,
-            Player player,
-            InteractionHand interactionHand,
-            CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir
-    ) {
-        if (!level.isClientSide()) {
-            return;
-        }
-
-        ItemStack itemStack = player.getItemInHand(interactionHand);
-
-        BowcastingAnimationState state =
-                ((BowcastingAnimationStateHolder) (Object) itemStack)
-                        .bowcasting$getAnimationState();
-
-        if (CrossbowItem.isCharged(itemStack)) {
-            state.crossbowChargedCheck();
-            return;
-        }
-
-        state.stopAnim();
-    }
-
-    @Inject(
-            method = "onUseTick",
-            at = @At("HEAD")
-    )
+    @Inject(method = "onUseTick", at = @At("HEAD"))
     private void bowcasting$onUseTick(
             Level level,
-            LivingEntity livingEntity,
-            ItemStack itemStack,
+            LivingEntity entity,
+            ItemStack stack,
             int remainingUseTicks,
             CallbackInfo ci
     ) {
@@ -95,45 +33,60 @@ public class CrossbowItemMixin {
         }
 
         BowcastingAnimationState state =
-                ((BowcastingAnimationStateHolder) (Object) itemStack)
-                        .bowcasting$getAnimationState();
+                ((BowcastingHandAnimationStateHolder) entity)
+                        .bowcasting$getAnimationState(
+                                entity.getUsedItemHand()
+                        );
 
         state.heartbeat();
 
         if (state.isDead()) {
-            state.startAnim(itemStack);
+            state.startAnim(stack);
         }
     }
 
-    @Inject(
-            method = "onUseTick",
-            at = @At("TAIL")
-    )
-    private void bowcasting$afterUseTick(
-            Level level,
-            LivingEntity livingEntity,
+
+    @Inject(method = "releaseUsing", at = @At("TAIL"))
+    private void bowcasting$releaseUsing(
             ItemStack itemStack,
-            int remainingUseTicks,
+            Level level,
+            LivingEntity entity,
+            int i,
             CallbackInfo ci
     ) {
         if (!level.isClientSide()) {
             return;
         }
 
-        if (!CrossbowItem.isCharged(itemStack)) {
+        BowcastingAnimationState state =
+                ((BowcastingHandAnimationStateHolder) entity)
+                        .bowcasting$getAnimationState(
+                                entity.getUsedItemHand()
+                        );
+
+        if (CrossbowItem.isCharged(itemStack)) {
+            // Successful charge: preserve rotations.
+            state.heartbeat();
+        } else {
+            // Aborted charge.
+            state.stopAnim();
+        }
+    }
+
+    @Inject(method = "use", at = @At("HEAD"))
+    private void bowcasting$use(
+            Level level,
+            Player player,
+            InteractionHand hand,
+            CallbackInfoReturnable<InteractionResult> cir
+    ) {
+        if (!level.isClientSide()) {
             return;
         }
 
-        BowcastingAnimationState state =
-                ((BowcastingAnimationStateHolder) (Object) itemStack)
-                        .bowcasting$getAnimationState();
-
-        CompletableFuture.delayedExecutor(
-                200,
-                TimeUnit.MILLISECONDS
-        ).execute(() ->
-                Minecraft.getInstance().execute(state::crossbowChargedCheck)
-        );
+        // New charging attempt, or firing a charged crossbow.
+        ((BowcastingHandAnimationStateHolder) player)
+                .bowcasting$getAnimationState(hand)
+                .stopAnim();
     }
 }
-

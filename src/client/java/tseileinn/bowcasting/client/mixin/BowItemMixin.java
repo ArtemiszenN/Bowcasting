@@ -10,20 +10,15 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import tseileinn.bowcasting.client.animation.BowcastingAnimationState;
-import tseileinn.bowcasting.client.animation.BowcastingAnimationStateHolder;
+import tseileinn.bowcasting.client.animation.BowcastingHandAnimationStateHolder;
 
 @Mixin(BowItem.class)
 public class BowItemMixin {
-
-    @Inject(
-            method = "releaseUsing",
-            at = @At("HEAD")
-    )
+    @Inject(method = "releaseUsing", at = @At("HEAD"))
     private void bowcasting$releaseUsing(
             ItemStack itemStack,
             Level level,
-            LivingEntity livingEntity,
+            LivingEntity entity,
             int remainingUseTicks,
             CallbackInfo ci
     ) {
@@ -31,10 +26,11 @@ public class BowItemMixin {
             return;
         }
 
-        BowcastingAnimationState state =
-                ((BowcastingAnimationStateHolder) (Object) itemStack)
-                        .bowcasting$getAnimationState();
-
-        state.stopAnim();
+        ((BowcastingHandAnimationStateHolder) entity)
+                .bowcasting$getAnimationState(
+                        entity.getUsedItemHand()
+                )
+                .stopAnim();
     }
+
 }

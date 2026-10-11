@@ -12,37 +12,34 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import tseileinn.bowcasting.client.animation.BowcastingAnimationState;
-import tseileinn.bowcasting.client.animation.BowcastingAnimationStateHolder;
+import tseileinn.bowcasting.client.animation.BowcastingHandAnimationStateHolder;
 
 @Mixin(Item.class)
 public class ItemMixin {
 
-    @Inject(
-            method = "onUseTick",
-            at = @At("HEAD")
-    )
+    @Inject(method = "onUseTick", at = @At("HEAD"))
     private void bowcasting$onUseTick(
             Level level,
-            LivingEntity livingEntity,
-            ItemStack itemStack,
+            LivingEntity entity,
+            ItemStack stack,
             int remainingUseTicks,
             CallbackInfo ci
     ) {
-        if (!level.isClientSide()) {
-            return;
-        }
-
-        if (!(itemStack.getItem() instanceof BowItem)) {
+        if (!level.isClientSide()
+                || !(stack.getItem() instanceof BowItem)) {
             return;
         }
 
         BowcastingAnimationState state =
-                ((BowcastingAnimationStateHolder) (Object) itemStack)
-                        .bowcasting$getAnimationState();
+                ((BowcastingHandAnimationStateHolder) entity)
+                        .bowcasting$getAnimationState(
+                                entity.getUsedItemHand()
+                        );
 
         state.heartbeat();
-        if(state.isDead()) {
-            state.startAnim(itemStack);
+
+        if (state.isDead()) {
+            state.startAnim(stack);
         }
     }
 }
