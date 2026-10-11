@@ -3,18 +3,17 @@ package tseileinn.bowcasting.client.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import tseileinn.bowcasting.client.BowcastingRenderHook;
-import tseileinn.bowcasting.client.BowcastingSpellRenderer;
 import tseileinn.bowcasting.client.BowcastingSpellRendererImpl;
+import tseileinn.bowcasting.client.ItemStackResolver;
 
 @Mixin(ItemInHandLayer.class)
 public class ItemInHandLayerMixin {
@@ -48,9 +47,19 @@ public class ItemInHandLayerMixin {
 
         var renderer = BowcastingSpellRendererImpl.INSTANCE;
 
+        ItemStack owner = ItemStackResolver.getStateOwner(
+                item.stack(),
+                item.context(),
+                item.entity()
+        );
+
         var previous = BowcastingRenderHook.swap(
                 ps -> renderer.bowcasting$renderSpell(
-                        item.stack(), item.context(), ps, collector)
+                        owner,
+                        item.context(),
+                        ps,
+                        collector
+                )
         );
 
         try {
