@@ -8,30 +8,29 @@ import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import tseileinn.bowcasting.client.animation.BowcastingAnimationState;
-import tseileinn.bowcasting.client.animation.BowcastingAnimationStateHolder;
+
+import tseileinn.bowcasting.client.animation.BowcastingHandAnimationStateHolder;
 
 @Mixin(BowItem.class)
 public class BowItemMixin {
 
-    @Inject(
-            method = "releaseUsing",
-            at = @At("HEAD")
-    )
+    @Inject(method = "releaseUsing", at = @At("HEAD"))
     private void bowcasting$releaseUsing(
-            ItemStack itemStack, Level level, LivingEntity livingEntity, int i, CallbackInfoReturnable<Boolean> cir
+            ItemStack stack,
+            Level level,
+            LivingEntity entity,
+            int remainingUseTicks,
+            CallbackInfoReturnable<Boolean> cir
     ) {
         if (!level.isClientSide()) {
             return;
         }
 
-        BowcastingAnimationState state =
-                ((BowcastingAnimationStateHolder) (Object) itemStack)
-                        .bowcasting$getAnimationState();
-
-        state.stopAnim();
+        ((BowcastingHandAnimationStateHolder) entity)
+                .bowcasting$getAnimationState(
+                        entity.getUsedItemHand()
+                )
+                .stopAnim();
     }
 }

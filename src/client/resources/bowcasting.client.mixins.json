@@ -5,10 +5,13 @@
 	"client": [
 		"BowItemMixin",
 		"ItemRendererMixin",
-		"ItemStackMixin",
 		"ItemMixin",
 		"CrossbowItemMixin",
-		"AbstractArrowMixin"
+		"AbstractArrowMixin",
+		"LivingEntityMixin",
+		"LivingEntityRendererMixin",
+		"LivingEntityRenderStateMixin",
+		"ItemInHandLayerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
