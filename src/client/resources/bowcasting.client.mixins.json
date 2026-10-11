@@ -11,7 +11,8 @@
 		"ItemStackLayerMixin",
 		"ItemModelResolverMixin",
 		"ItemInHandLayerMixin",
-		"ItemInHandRendererMixin"
+		"ItemInHandRendererMixin",
+		"PunchyArmRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

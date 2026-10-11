@@ -191,8 +191,8 @@ public final class BowcastingSpellRendererImpl implements BowcastingSpellRendere
 
         poseStack.pushPose();
 
-        poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
-        poseStack.mulPose(Axis.XP.rotationDegrees(90F));
+        poseStack.rotateDegrees(Axis.ZP, 45F);
+        poseStack.rotateDegrees(Axis.XP, 90F);
         poseStack.translate(Math.sqrt(0.5), 0.455F, -0.5F);
 
         poseStack.pushPose();

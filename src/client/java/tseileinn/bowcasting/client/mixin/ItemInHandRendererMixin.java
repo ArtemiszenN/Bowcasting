@@ -4,12 +4,14 @@ package tseileinn.bowcasting.client.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.ItemInHandRenderer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.FirstPersonHandsAndItemsRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.level.FirstPersonHandsAndItemsRenderState;
+import net.minecraft.client.renderer.state.level.PlayerRenderState;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -67,12 +69,15 @@ public class ItemInHandRendererMixin {
                 ? ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
                 : ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
 
-        ItemStack realItemStack = ItemStackResolver.getStateOwner(itemStack, context, entity);
-        var renderer = BowcastingSpellRendererImpl.INSTANCE;
+        ItemStack owner = ItemStackResolver.getStateOwner(
+                itemStack,
+                context,
+                Minecraft.getInstance().player
+        );
 
         var previous = BowcastingRenderHook.swap(
-                ps -> renderer.bowcasting$renderSpell(
-                        realItemStack, context, ps, collector)
+                ps -> BowcastingSpellRendererImpl.INSTANCE
+                        .bowcasting$renderSpell(owner, context, ps, collector)
         );
 
         try {
