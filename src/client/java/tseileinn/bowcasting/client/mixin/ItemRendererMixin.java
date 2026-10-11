@@ -209,7 +209,7 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
         float finalX = bow ? 0.75F : 0.7F;
 
         poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
-        poseStack.mulPose(Axis.XP.rotationDegrees(100F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(90F));
         poseStack.translate(finalX, 0.4F, -0.5F);
 
         poseStack.pushPose();
