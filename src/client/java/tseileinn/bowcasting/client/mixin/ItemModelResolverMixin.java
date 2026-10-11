@@ -17,6 +17,6 @@ public class ItemModelResolverMixin {
     private void bowcasting$remember(
             ItemStackRenderState state, ItemStack stack, ItemDisplayContext context, LivingEntity livingEntity, CallbackInfo ci
     ) {
-        BowcastingRenderHook.remember(state, stack, context);
+        BowcastingRenderHook.remember(state, stack, context, livingEntity);
     }
 }

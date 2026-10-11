@@ -10,10 +10,12 @@ import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import tseileinn.bowcasting.client.BowcastingRenderHook;
 import tseileinn.bowcasting.client.BowcastingSpellRenderer;
+import tseileinn.bowcasting.client.ItemStackResolver;
 
 @Mixin(ItemInHandLayer.class)
 public class ItemInHandLayerMixin {
@@ -48,9 +50,19 @@ public class ItemInHandLayerMixin {
         var renderer = (BowcastingSpellRenderer)
                 Minecraft.getInstance().getItemRenderer();
 
+        ItemStack owner = ItemStackResolver.getStateOwner(
+                item.stack(),
+                item.context(),
+                item.entity()
+        );
+
         var previous = BowcastingRenderHook.swap(
                 ps -> renderer.bowcasting$renderSpell(
-                        item.stack(), item.context(), ps, collector)
+                        owner,
+                        item.context(),
+                        ps,
+                        collector
+                )
         );
 
         try {
