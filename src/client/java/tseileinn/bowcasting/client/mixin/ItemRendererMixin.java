@@ -1,6 +1,5 @@
 package tseileinn.bowcasting.client.mixin;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 
@@ -14,6 +13,7 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
@@ -24,13 +24,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import tseileinn.bowcasting.Bowcasting;
 import tseileinn.bowcasting.client.BowcastingSpellRenderer;
 import tseileinn.bowcasting.client.animation.BowcastingAnimationState;
@@ -153,6 +149,84 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
         drawTexture(poseStack, collector, STAGE_3_PATH);
     }
 
+    @Unique
+    private static ItemStack bowcasting$getStateOwner(
+            ItemStack rendered,
+            ItemDisplayContext context,
+            LivingEntity entity
+    ) {
+        if (entity == null) {
+            return rendered;
+        }
+
+        HumanoidArm arm = switch (context) {
+            case FIRST_PERSON_RIGHT_HAND, THIRD_PERSON_RIGHT_HAND ->
+                    HumanoidArm.RIGHT;
+            case FIRST_PERSON_LEFT_HAND, THIRD_PERSON_LEFT_HAND ->
+                    HumanoidArm.LEFT;
+            default -> null;
+        };
+
+        if (arm == null) {
+            return rendered;
+        }
+
+        ItemStack actual = entity.getItemHeldByArm(arm);
+
+        return ItemStack.isSameItemSameComponents(actual, rendered)
+                ? actual
+                : rendered;
+    }
+
+    @Inject(
+            method = "renderStatic(Lnet/minecraft/world/entity/LivingEntity;" +
+                    "Lnet/minecraft/world/item/ItemStack;" +
+                    "Lnet/minecraft/world/item/ItemDisplayContext;" +
+                    "Z" +
+                    "Lcom/mojang/blaze3d/vertex/PoseStack;" +
+                    "Lnet/minecraft/client/renderer/MultiBufferSource;" +
+                    "Lnet/minecraft/world/level/Level;" +
+                    "III)V",
+            at = @At("TAIL")
+    )
+    private void bowcasting$renderSpell(
+            LivingEntity livingEntity,
+            ItemStack itemStack,
+            ItemDisplayContext itemDisplayContext,
+            boolean bl,
+            PoseStack poseStack,
+            MultiBufferSource buffers
+    ) {
+        VertexConsumer vertex = buffers.getBuffer(RenderType.lines());
+        PoseStack.Pose pose = poseStack.last();
+
+        float length = 0.5f;
+
+        // X = red
+        gizmoLine(vertex, pose, length, 0, 0, 255, 0, 0);
+
+        // Y = green
+        gizmoLine(vertex, pose, 0, length, 0, 0, 255, 0);
+
+        // Z = blue
+        gizmoLine(vertex, pose, 0, 0, length, 0, 0, 255);
+    }
+
+    @Unique
+    private static void gizmoLine(
+            VertexConsumer vertex,
+            PoseStack.Pose pose,
+            float x, float y, float z,
+            int r, int g, int b
+    ) {
+        vertex.addVertex(pose, 0, 0, 0)
+                .setColor(r, g, b, 255)
+                .setNormal(pose, x, y, z);
+
+        vertex.addVertex(pose, x, y, z)
+                .setColor(r, g, b, 255)
+                .setNormal(pose, x, y, z);
+    }
 
     @Override
     public void bowcasting$renderSpell(
@@ -228,4 +302,57 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
 
         state.endFrame();
     }
+
+    @WrapOperation(
+            method = "renderStatic(Lnet/minecraft/world/entity/LivingEntity;" +
+                    "Lnet/minecraft/world/item/ItemStack;" +
+                    "Lnet/minecraft/world/item/ItemDisplayContext;" +
+                    "Lcom/mojang/blaze3d/vertex/PoseStack;" +
+                    "Lnet/minecraft/client/renderer/MultiBufferSource;" +
+                    "Lnet/minecraft/world/level/Level;III)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/renderer/item/ItemStackRenderState;" +
+                            "render(Lcom/mojang/blaze3d/vertex/PoseStack;" +
+                            "Lnet/minecraft/client/renderer/MultiBufferSource;II)V"
+            )
+    )
+    private void bowcasting$withRenderContext(
+            ItemStackRenderState renderState,
+            PoseStack poseStack,
+            MultiBufferSource buffers,
+            int light,
+            int overlay,
+            Operation<Void> original,
+            LivingEntity entity,
+            ItemStack itemStack,
+            ItemDisplayContext context,
+            PoseStack originalPose,
+            MultiBufferSource originalBuffers,
+            Level level,
+            int originalLight,
+            int originalOverlay,
+            int seed
+    ) {
+        if (!(itemStack.getItem() instanceof BowItem)
+                && !(itemStack.getItem() instanceof CrossbowItem)) {
+            original.call(renderState, poseStack, buffers, light, overlay);
+            return;
+        }
+
+        ItemStack owner = bowcasting$getStateOwner(
+                itemStack, context, entity
+        );
+
+        var previous = BowcastingRenderHook.swap(
+                ps -> bowcasting$renderSpell(owner, context, ps, buffers)
+        );
+
+        try {
+            original.call(renderState, poseStack, buffers, light, overlay);
+        } finally {
+            BowcastingRenderHook.swap(previous);
+        }
+    }
+
 }
