@@ -2,6 +2,7 @@ package tseileinn.bowcasting.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
@@ -12,7 +13,7 @@ import java.util.function.Consumer;
 public final class BowcastingRenderHook {
     private static final ThreadLocal<Consumer<PoseStack>> ACTIVE = new ThreadLocal<>();
 
-    public record RenderedItem(ItemStack stack, ItemDisplayContext context) {}
+    public record RenderedItem(ItemStack stack, ItemDisplayContext context, LivingEntity entity) {}
 
     private static final Map<ItemStackRenderState, RenderedItem> ITEMS =
             new WeakHashMap<>();
@@ -20,9 +21,10 @@ public final class BowcastingRenderHook {
     public static void remember(
             ItemStackRenderState state,
             ItemStack stack,
-            ItemDisplayContext context
+            ItemDisplayContext context,
+            LivingEntity entity
     ) {
-        ITEMS.put(state, new RenderedItem(stack, context));
+        ITEMS.put(state, new RenderedItem(stack, context, entity));
     }
 
     public static RenderedItem lookup(ItemStackRenderState state) {

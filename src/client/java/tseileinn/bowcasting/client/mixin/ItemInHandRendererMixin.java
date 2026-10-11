@@ -16,6 +16,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import tseileinn.bowcasting.client.BowcastingRenderHook;
 import tseileinn.bowcasting.client.BowcastingSpellRendererImpl;
+import tseileinn.bowcasting.client.ItemStackResolver;
 
 @Mixin(ItemInHandRenderer.class)
 public class ItemInHandRendererMixin {
@@ -50,12 +51,12 @@ public class ItemInHandRendererMixin {
                     light, overlay, outlineColor);
             return;
         }
-
+        ItemStack realItemStack = ItemStackResolver.getStateOwner(itemStack, context, entity);
         var renderer = BowcastingSpellRendererImpl.INSTANCE;
 
         var previous = BowcastingRenderHook.swap(
                 ps -> renderer.bowcasting$renderSpell(
-                        itemStack, context, ps, collector)
+                        realItemStack, context, ps, collector)
         );
 
         try {
