@@ -1,17 +1,16 @@
 package tseileinn.bowcasting.client.mixin;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.model.ItemTransform;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
@@ -22,13 +21,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import tseileinn.bowcasting.Bowcasting;
 import tseileinn.bowcasting.client.BowcastingSpellRenderer;
 import tseileinn.bowcasting.client.animation.BowcastingAnimationState;
@@ -50,60 +45,12 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
     private static final String STAGE_3_PATH = "textures/spell/stage3.png";
 
     @Unique
-    private static final String ENTITY_RENDER_STATIC =
-            "renderStatic(Lnet/minecraft/world/entity/LivingEntity;" +
-                    "Lnet/minecraft/world/item/ItemStack;" +
-                    "Lnet/minecraft/world/item/ItemDisplayContext;" +
-                    "Z" +
-                    "Lcom/mojang/blaze3d/vertex/PoseStack;" +
-                    "Lnet/minecraft/client/renderer/MultiBufferSource;" +
-                    "Lnet/minecraft/world/level/Level;" +
-                    "III)V";
-
-    @Unique
-    private static final ThreadLocal<Deque<Boolean>> bowcasting$entityScopes =
-            ThreadLocal.withInitial(ArrayDeque::new);
-
-    @Inject(method = ENTITY_RENDER_STATIC, at = @At("HEAD"))
-    private void bowcasting$captureEntity(
-            LivingEntity livingEntity,
-            ItemStack itemStack,
-            ItemDisplayContext itemDisplayContext,
-            boolean bl,
-            PoseStack poseStack,
-            MultiBufferSource buffers,
-            Level level,
-            int light,
-            int overlay,
-            int seed,
-            CallbackInfo ci
-    ) {
-        bowcasting$entityScopes.get().push(
-                livingEntity != null
-                        && livingEntity == Minecraft.getInstance().player
-        );
-    }
-
-    @Inject(method = ENTITY_RENDER_STATIC, at = @At("RETURN"))
-    private void bowcasting$releaseEntity(CallbackInfo ci) {
-        bowcasting$entityScopes.get().pop();
-    }
-
-    @Unique
-    private static boolean bowcasting$isLocalPlayerRender() {
-        return Boolean.TRUE.equals(
-                bowcasting$entityScopes.get().peek()
-        );
-    }
-
-    @Unique
     private static void drawTexture(
             PoseStack poseStack,
             MultiBufferSource buffers,
             String path
     ) {
         VertexConsumer vertex = buffers.getBuffer(
-                //RenderType.entityTranslucentEmissive(Bowcasting.id(path))
                 RenderType.energySwirl(Bowcasting.id(path), 0F, 0F)
         );
 
@@ -199,94 +146,36 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
         drawTexture(poseStack, buffers, STAGE_3_PATH);
     }
 
+
     @Unique
     private static ItemStack bowcasting$getStateOwner(
             ItemStack rendered,
-            ItemDisplayContext context
+            ItemDisplayContext context,
+            LivingEntity entity
     ) {
-        // Do not borrow animation states from other entities.
-        if (!bowcasting$isLocalPlayerRender()) {
+        if (entity == null) {
             return rendered;
         }
 
-        boolean rightHand =
-                context == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
-                        || context == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
+        HumanoidArm arm = switch (context) {
+            case FIRST_PERSON_RIGHT_HAND, THIRD_PERSON_RIGHT_HAND ->
+                    HumanoidArm.RIGHT;
+            case FIRST_PERSON_LEFT_HAND, THIRD_PERSON_LEFT_HAND ->
+                    HumanoidArm.LEFT;
+            default -> null;
+        };
 
-        boolean leftHand =
-                context == ItemDisplayContext.FIRST_PERSON_LEFT_HAND
-                        || context == ItemDisplayContext.THIRD_PERSON_LEFT_HAND;
-
-        if (!rightHand && !leftHand) {
+        if (arm == null) {
             return rendered;
         }
 
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) {
-            return rendered;
-        }
-
-        boolean mainHand =
-                (player.getMainArm() == HumanoidArm.RIGHT) == rightHand;
-
-        ItemStack actual = mainHand
-                ? player.getMainHandItem()
-                : player.getOffhandItem();
+        ItemStack actual = entity.getItemHeldByArm(arm);
 
         return ItemStack.isSameItemSameComponents(actual, rendered)
                 ? actual
                 : rendered;
     }
 
-    @Inject(
-            method = "renderStatic(Lnet/minecraft/world/entity/LivingEntity;" +
-                    "Lnet/minecraft/world/item/ItemStack;" +
-                    "Lnet/minecraft/world/item/ItemDisplayContext;" +
-                    "Z" +
-                    "Lcom/mojang/blaze3d/vertex/PoseStack;" +
-                    "Lnet/minecraft/client/renderer/MultiBufferSource;" +
-                    "Lnet/minecraft/world/level/Level;" +
-                    "III)V",
-            at = @At("TAIL")
-    )
-    private void bowcasting$renderSpell(
-            LivingEntity livingEntity,
-            ItemStack itemStack,
-            ItemDisplayContext itemDisplayContext,
-            boolean bl,
-            PoseStack poseStack,
-            MultiBufferSource buffers
-    ) {
-        VertexConsumer vertex = buffers.getBuffer(RenderType.lines());
-        PoseStack.Pose pose = poseStack.last();
-
-        float length = 0.5f;
-
-        // X = red
-        gizmoLine(vertex, pose, length, 0, 0, 255, 0, 0);
-
-        // Y = green
-        gizmoLine(vertex, pose, 0, length, 0, 0, 255, 0);
-
-        // Z = blue
-        gizmoLine(vertex, pose, 0, 0, length, 0, 0, 255);
-    }
-
-    @Unique
-    private static void gizmoLine(
-            VertexConsumer vertex,
-            PoseStack.Pose pose,
-            float x, float y, float z,
-            int r, int g, int b
-    ) {
-        vertex.addVertex(pose, 0, 0, 0)
-                .setColor(r, g, b, 255)
-                .setNormal(pose, x, y, z);
-
-        vertex.addVertex(pose, x, y, z)
-                .setColor(r, g, b, 255)
-                .setNormal(pose, x, y, z);
-    }
 
     @Override
     public void bowcasting$renderSpell(
@@ -399,8 +288,12 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
             return;
         }
 
+        ItemStack owner = bowcasting$getStateOwner(
+                itemStack, context, entity
+        );
+
         var previous = BowcastingRenderHook.swap(
-                ps -> bowcasting$renderSpell(itemStack, context, ps, buffers)
+                ps -> bowcasting$renderSpell(owner, context, ps, buffers)
         );
 
         try {
@@ -409,4 +302,5 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
             BowcastingRenderHook.swap(previous);
         }
     }
+
 }
