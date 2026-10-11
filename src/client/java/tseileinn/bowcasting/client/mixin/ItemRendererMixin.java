@@ -206,11 +206,10 @@ public class ItemRendererMixin implements BowcastingSpellRenderer {
                 : Bowcasting.CONFIG.xbowScaleMultiplier3);
 
         poseStack.pushPose();
-        float finalX = bow ? 0.75F : 0.7F;
 
         poseStack.mulPose(Axis.ZP.rotationDegrees(45F));
         poseStack.mulPose(Axis.XP.rotationDegrees(90F));
-        poseStack.translate(finalX, 0.4F, -0.5F);
+        poseStack.translate(Math.sqrt(0.5), 0.455F, -0.5F);
 
         poseStack.pushPose();
         renderStage1(poseStack, collector, state, scale1);
